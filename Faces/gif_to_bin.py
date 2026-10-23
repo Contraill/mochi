@@ -1,28 +1,28 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-gif_to_bin.py — Mochi GIF/PNG/JPG -> .bin dönüştürücü
+gif_to_bin.py - Mochi GIF/PNG/JPG -> .bin converter
 
-Güncel Mochi firmware'i iki format okur:
-  - MOC2: ham frame verisi. Büyük dosya, basit format.
-  - MOC3: delta + RLE sıkıştırılmış format. Varsayılan ve önerilen format.
+The Mochi firmware reads two formats:
+  - MOC2: raw frame data. Large files, simple format.
+  - MOC3: delta + RLE compressed. Default and recommended.
 
-Bu script animasyonları kısaltmaz. Format header'ında frame_count 1 byte olduğu için
-255 frame üstü girişlerde varsayılan davranış hata vermektir. İstersen bilinçli olarak
---allow-trim kullanıp 255 frame'e örnekletebilirsin.
+The script never shortens animations. The header stores frame_count in one byte,
+so inputs with more than 255 frames are rejected by default. Use --allow-trim to
+resample them to 255 frames on purpose.
 
-Temel kullanım:
+Basic usage:
   python gif_to_bin.py
   python gif_to_bin.py --input ./gifs --output ./bins
   python gif_to_bin.py playful.gif smirk.gif
   python gif_to_bin.py --format moc2 love.gif
   python gif_to_bin.py --preview --threshold 120 *.gif
 
-Notlar:
-  - Varsayılan çıktı MOC3'tür.
-  - Boyut varsayılan 128x64'tür; Mochi firmware'i pratikte bunu bekler.
-  - Genişlik 8'in katı olmalıdır.
-  - Delay byte'ı 10 ms birimindedir: 10 = 100 ms.
+Notes:
+  - Default output is MOC3.
+  - Default size is 128x64; the Mochi firmware expects exactly that.
+  - Width must be a multiple of 8.
+  - The delay byte is in 10 ms units: 10 = 100 ms.
 """
 
 from __future__ import annotations
@@ -39,8 +39,8 @@ from typing import Iterable, List, Optional, Sequence, Tuple
 try:
     from PIL import Image, ImageSequence, ImageOps
 except ImportError:
-    print("HATA: Pillow kütüphanesi gerekli.")
-    print("Kurulum: python -m pip install Pillow")
+    print("ERROR: the Pillow library is required.")
+    print("Install it with: python -m pip install Pillow")
     sys.exit(1)
 
 
@@ -91,15 +91,15 @@ def parse_resize(value: str) -> Tuple[int, int]:
         height = int(h_s)
     except Exception as exc:
         raise argparse.ArgumentTypeError(
-            f"Geçersiz boyut: {value!r}. Örnek: 128x64"
+            f"Invalid size: {value!r}. Example: 128x64"
         ) from exc
 
     if width <= 0 or height <= 0:
-        raise argparse.ArgumentTypeError("Boyutlar pozitif olmalı.")
+        raise argparse.ArgumentTypeError("Width and height must be positive.")
     if width % 8 != 0:
-        raise argparse.ArgumentTypeError("Genişlik 8'in katı olmalı.")
+        raise argparse.ArgumentTypeError("Width must be a multiple of 8.")
     if width // 8 > 255 or height > 255:
-        raise argparse.ArgumentTypeError("Header limiti nedeniyle width/8 ve height en fazla 255 olabilir.")
+        raise argparse.ArgumentTypeError("Because of the header format, width/8 and height can be at most 255.")
     return width, height
 
 
@@ -108,7 +108,7 @@ def clamp_delay_ms(delay_ms: int) -> int:
 
 
 def delay_ms_to_units(delay_ms: int) -> int:
-    # Firmware delay byte'ını 10 ms ile çarpar. round, GIF sürelerini floor'a göre daha iyi korur.
+    # The firmware multiplies the delay byte by 10 ms. round() keeps GIF timings closer than floor().
     return max(1, min(255, int(round(clamp_delay_ms(delay_ms) / 10.0))))
 
 
@@ -117,7 +117,7 @@ def units_to_ms(delay_units: int) -> int:
 
 
 def flatten_to_background(img: Image.Image, background: Tuple[int, int, int]) -> Image.Image:
-    """Şeffaflığı OLED'in siyah arka planına benzer şekilde düzleştirir."""
+    """Flattens transparency onto a background, like the OLED's black."""
     rgba = img.convert("RGBA")
     bg = Image.new("RGBA", rgba.size, background + (255,))
     bg.alpha_composite(rgba)
@@ -125,11 +125,11 @@ def flatten_to_background(img: Image.Image, background: Tuple[int, int, int]) ->
 
 
 def resize_image(img: Image.Image, width: int, height: int, fit: str, background: Tuple[int, int, int]) -> Image.Image:
-    """Görüntüyü 128x64 raster'a dönüştürür.
+    """Resizes the image to the output raster (128x64).
 
-    stretch: Eski script davranışı; görüntüyü doğrudan 128x64'e esnetir.
-    contain: Oranı korur, kalan alanı siyahla doldurur.
-    cover: Oranı korur, taşanı kırpar.
+    stretch: stretch the image to fit exactly (original behavior).
+    contain: keep the aspect ratio, fill the rest with the background.
+    cover: keep the aspect ratio, crop what doesn't fit.
     """
     if fit == "stretch":
         return img.resize((width, height), RESAMPLE_LANCZOS)
@@ -145,7 +145,7 @@ def resize_image(img: Image.Image, width: int, height: int, fit: str, background
     if fit == "cover":
         return ImageOps.fit(img, (width, height), method=RESAMPLE_LANCZOS, centering=(0.5, 0.5))
 
-    raise ValueError(f"Bilinmeyen fit modu: {fit}")
+    raise ValueError(f"Unknown fit mode: {fit}")
 
 
 def image_to_oled_bytes(
@@ -157,10 +157,10 @@ def image_to_oled_bytes(
     fit: str,
     background: Tuple[int, int, int],
 ) -> bytes:
-    """PIL image -> U8g2 XBMP uyumlu yatay byte düzeni.
+    """PIL image -> horizontal byte layout compatible with U8g2 XBM.
 
-    Her satır soldan sağa gider. Her byte 8 piksel taşır. Byte içindeki bit sırası
-    LSB-first'tür; x=0 pikseli bit0'a yazılır.
+    Rows go left to right, each byte holds 8 pixels, least significant bit first:
+    the pixel at x=0 is bit 0.
     """
     img = flatten_to_background(img, background)
     img = resize_image(img, width, height, fit, background)
@@ -193,9 +193,9 @@ def read_image_frames(
     background: Tuple[int, int, int],
     allow_trim: bool,
 ) -> List[EncodedFrame]:
-    """GIF/PNG/JPG dosyasını frame listesine dönüştürür."""
+    """Reads a GIF/PNG/JPG file into a list of frames."""
     if speed <= 0:
-        raise ValueError("--speed pozitif olmalı. Örnek: 1.0 normal, 2.0 iki kat hızlı.")
+        raise ValueError("--speed must be positive. Example: 1.0 normal, 2.0 twice as fast.")
 
     with Image.open(path) as im:
         is_animated = bool(getattr(im, "is_animated", False))
@@ -216,13 +216,13 @@ def read_image_frames(
             source_frames.append((delay_ms, data))
 
     if not source_frames:
-        raise ValueError("Hiç frame okunamadı.")
+        raise ValueError("No frames could be read.")
 
     if len(source_frames) > MAX_FRAMES:
         if not allow_trim:
             raise ValueError(
-                f"{len(source_frames)} frame var; MOC header en fazla {MAX_FRAMES} destekler. "
-                "Animasyonu kısaltmadan çıktı üretmek mümkün değil. Bilinçli kırpma için --allow-trim kullan."
+                f"{len(source_frames)} frames; the MOC header supports at most {MAX_FRAMES}. "
+                "The animation can't be converted without shortening it. Use --allow-trim to resample it."
             )
         source_frames = sample_frames_preserving_duration(source_frames, MAX_FRAMES)
 
@@ -230,9 +230,9 @@ def read_image_frames(
 
 
 def sample_frames_preserving_duration(frames: Sequence[Tuple[int, bytes]], target_count: int) -> List[Tuple[int, bytes]]:
-    """255 frame üstü animasyonlarda toplam süreyi yaklaşık koruyarak örnekleme yapar.
+    """Resamples animations over 255 frames while roughly keeping the total duration.
 
-    Varsayılan olarak kullanılmaz; çünkü kullanıcının animasyonu kısaltmama beklentisi var.
+    Not used by default, so animations are never shortened unless asked for.
     """
     if len(frames) <= target_count:
         return list(frames)
@@ -250,7 +250,7 @@ def sample_frames_preserving_duration(frames: Sequence[Tuple[int, bytes]], targe
 
 def rle_delta_encode(prev: bytes, cur: bytes) -> bytes:
     if len(prev) != len(cur):
-        raise ValueError("Delta encode için frame boyutları eşit olmalı.")
+        raise ValueError("Frames must be the same size for delta encoding.")
 
     delta = bytes(a ^ b for a, b in zip(prev, cur))
     out = bytearray()
@@ -268,12 +268,12 @@ def rle_delta_encode(prev: bytes, cur: bytes) -> bytes:
 
 def write_moc2(frames: Sequence[EncodedFrame], output_path: Path, bytes_per_row: int, height: int) -> None:
     if not (1 <= len(frames) <= MAX_FRAMES):
-        raise ValueError("Frame sayısı 1-255 aralığında olmalı.")
+        raise ValueError("Frame count must be between 1 and 255.")
     blob = bytearray(MOC2_MAGIC + bytes((len(frames), bytes_per_row, height, 0)))
     expected_size = bytes_per_row * height
     for frame in frames:
         if len(frame.data) != expected_size:
-            raise ValueError("Frame data boyutu header ile uyuşmuyor.")
+            raise ValueError("Frame data size does not match the header.")
         blob.append(frame.delay_units)
         blob.extend(frame.data)
     output_path.write_bytes(blob)
@@ -281,17 +281,17 @@ def write_moc2(frames: Sequence[EncodedFrame], output_path: Path, bytes_per_row:
 
 def write_moc3(frames: Sequence[EncodedFrame], output_path: Path, bytes_per_row: int, height: int) -> None:
     if not (1 <= len(frames) <= MAX_FRAMES):
-        raise ValueError("Frame sayısı 1-255 aralığında olmalı.")
+        raise ValueError("Frame count must be between 1 and 255.")
     frame_size = bytes_per_row * height
     blob = bytearray(MOC3_MAGIC + bytes((len(frames), bytes_per_row, height, MOC3_FORMAT_RLE_DELTA)))
     prev = bytes(frame_size)
 
     for frame in frames:
         if len(frame.data) != frame_size:
-            raise ValueError("Frame data boyutu header ile uyuşmuyor.")
+            raise ValueError("Frame data size does not match the header.")
         comp = rle_delta_encode(prev, frame.data)
         if len(comp) > 0xFFFF:
-            raise ValueError("Sıkıştırılmış frame 65535 byte sınırını aştı.")
+            raise ValueError("A compressed frame exceeds the 65535 byte limit.")
         blob.append(frame.delay_units)
         blob.extend(struct.pack("<H", len(comp)))
         blob.extend(comp)
@@ -302,28 +302,28 @@ def write_moc3(frames: Sequence[EncodedFrame], output_path: Path, bytes_per_row:
 
 def decode_moc3_frame(comp: bytes, prev: bytes, frame_size: int) -> bytes:
     if len(comp) % 2:
-        raise ValueError("MOC3 compLen tek olamaz.")
+        raise ValueError("MOC3 compLen cannot be odd.")
     out = bytearray()
     i = 0
     while i < len(comp):
         count = comp[i]
         value = comp[i + 1]
         if count == 0:
-            raise ValueError("MOC3 RLE count=0 geçersiz.")
+            raise ValueError("MOC3 RLE count=0 is invalid.")
         if len(out) + count > frame_size:
-            raise ValueError("MOC3 RLE run frame sonunu taşıyor.")
+            raise ValueError("MOC3 RLE run goes past the end of the frame.")
         start = len(out)
         out.extend(bytes([value]) * count)
         i += 2
     if len(out) != frame_size:
-        raise ValueError("MOC3 RLE frame eksik açıldı.")
+        raise ValueError("MOC3 RLE frame decoded short.")
     return bytes(prev[j] ^ out[j] for j in range(frame_size))
 
 
 def validate_bin_file(path: Path, width: int, height: int) -> None:
     data = path.read_bytes()
     if len(data) < HEADER_SIZE:
-        raise ValueError("Çıktı header için çok kısa.")
+        raise ValueError("Output is too short for a header.")
 
     magic = data[:4]
     frame_count = data[4]
@@ -332,41 +332,41 @@ def validate_bin_file(path: Path, width: int, height: int) -> None:
     fmt = data[7]
 
     if frame_count == 0:
-        raise ValueError("frame_count=0 geçersiz.")
+        raise ValueError("frame_count=0 is invalid.")
     if bytes_per_row != width // 8 or h != height:
-        raise ValueError("Header boyutu beklenen output boyutuyla uyuşmuyor.")
+        raise ValueError("Header size does not match the expected output size.")
 
     frame_size = bytes_per_row * h
 
     if magic == MOC2_MAGIC:
         expected = HEADER_SIZE + frame_count * (1 + frame_size)
         if len(data) != expected:
-            raise ValueError(f"MOC2 boyutu hatalı: {len(data)} != {expected}")
+            raise ValueError(f"Wrong MOC2 size: {len(data)} != {expected}")
         return
 
     if magic == MOC3_MAGIC:
         if fmt != MOC3_FORMAT_RLE_DELTA:
-            raise ValueError("MOC3 format byte hatalı.")
+            raise ValueError("Wrong MOC3 format byte.")
         offset = HEADER_SIZE
         prev = bytes(frame_size)
         for _ in range(frame_count):
             if offset + 3 > len(data):
-                raise ValueError("MOC3 frame header eksik.")
+                raise ValueError("MOC3 frame header is incomplete.")
             delay_units = data[offset]
             comp_len = data[offset + 1] | (data[offset + 2] << 8)
             offset += 3
             if delay_units == 0:
-                raise ValueError("Delay byte 0 olamaz.")
+                raise ValueError("Delay byte cannot be 0.")
             if offset + comp_len > len(data):
-                raise ValueError("MOC3 compLen dosya sonunu aşıyor.")
+                raise ValueError("MOC3 compLen goes past the end of the file.")
             comp = data[offset:offset + comp_len]
             offset += comp_len
             prev = decode_moc3_frame(comp, prev, frame_size)
         if offset != len(data):
-            raise ValueError("MOC3 sonunda fazladan byte var.")
+            raise ValueError("Extra bytes at the end of the MOC3 file.")
         return
 
-    raise ValueError("Magic MOC2/MOC3 değil.")
+    raise ValueError("Magic is not MOC2/MOC3.")
 
 
 def render_preview_png(frame_data: bytes, width: int, height: int, scale: int = 4) -> Image.Image:
@@ -393,12 +393,12 @@ def parse_delays(value: Optional[str]) -> Optional[List[int]]:
     try:
         delays = [int(part.strip()) for part in value.split(",") if part.strip()]
     except ValueError as exc:
-        raise argparse.ArgumentTypeError("--delays sadece virgülle ayrılmış tam sayılar olmalı.") from exc
+        raise argparse.ArgumentTypeError("--delays must be comma-separated integers.") from exc
     return [clamp_delay_ms(x) for x in delays]
 
 
 def expand_patterns(patterns: Sequence[str]) -> List[Path]:
-    """Windows'ta shell wildcard açmadığı için *.gif gibi pattern'leri burada açar."""
+    """Expands patterns like *.gif here, because the Windows shell doesn't."""
     out: List[Path] = []
     for item in patterns:
         matches = glob.glob(item)
@@ -406,7 +406,7 @@ def expand_patterns(patterns: Sequence[str]) -> List[Path]:
             out.extend(Path(m) for m in matches)
         else:
             out.append(Path(item))
-    # Sıra korunur, duplicate temizlenir.
+    # Keep order, drop duplicates.
     seen = set()
     unique: List[Path] = []
     for p in out:
@@ -423,7 +423,7 @@ def collect_inputs(args: argparse.Namespace) -> List[Path]:
 
     input_dir = Path(args.input)
     if not input_dir.is_dir():
-        raise ValueError(f"Girdi klasörü değil: {input_dir}")
+        raise ValueError(f"Not an input folder: {input_dir}")
 
     return sorted(p for p in input_dir.iterdir() if p.is_file() and p.suffix.lower() in IMAGE_EXTENSIONS)
 
@@ -440,7 +440,7 @@ def combine_images_to_frames(
     delays_ms: Optional[Sequence[int]],
 ) -> List[EncodedFrame]:
     if len(paths) > MAX_FRAMES:
-        raise ValueError(f"{len(paths)} frame var; combine için en fazla {MAX_FRAMES} desteklenir.")
+        raise ValueError(f"{len(paths)} frames; --combine supports at most {MAX_FRAMES}.")
     frames: List[EncodedFrame] = []
     for i, path in enumerate(paths):
         with Image.open(path) as img:
@@ -468,7 +468,7 @@ def convert_one(
     if not input_path.exists():
         raise FileNotFoundError(input_path)
     if input_path.suffix.lower() not in IMAGE_EXTENSIONS:
-        raise ValueError(f"Desteklenmeyen dosya tipi: {input_path.suffix}")
+        raise ValueError(f"Unsupported file type: {input_path.suffix}")
 
     frames = read_image_frames(input_path, width, height, threshold, invert, speed, fit, background, allow_trim)
     output_path = output_dir / f"{input_path.stem}.bin"
@@ -479,7 +479,7 @@ def convert_one(
     elif fmt == "moc3":
         write_moc3(frames, output_path, bytes_per_row, height)
     else:
-        raise ValueError(f"Bilinmeyen format: {fmt}")
+        raise ValueError(f"Unknown format: {fmt}")
 
     validate_bin_file(output_path, width, height)
 
@@ -507,15 +507,15 @@ def parse_background(value: str) -> Tuple[int, int, int]:
             return (int(value[1:3], 16), int(value[3:5], 16), int(value[5:7], 16))
         except ValueError:
             pass
-    raise argparse.ArgumentTypeError("Arka plan 'black', 'white' veya #RRGGBB olmalı.")
+    raise argparse.ArgumentTypeError("Background must be 'black', 'white' or #RRGGBB.")
 
 
 def build_arg_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
-        description="GIF/PNG/JPG dosyalarını Mochi 128x64 .bin formatına çevirir.",
+        description="Converts GIF/PNG/JPG files to the Mochi 128x64 .bin format.",
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
-Örnekler:
+Examples:
   python gif_to_bin.py
   python gif_to_bin.py --input ./gifs --output ./bins
   python gif_to_bin.py playful.gif smirk.gif speed.gif
@@ -524,22 +524,22 @@ def build_arg_parser() -> argparse.ArgumentParser:
   python gif_to_bin.py --combine blink blink_0.png blink_1.png blink_2.png --delays 120,40,120
         """.strip(),
     )
-    parser.add_argument("files", nargs="*", help="Belirli dosyalar veya wildcard pattern'leri. Boşsa --input klasörü taranır.")
-    parser.add_argument("--input", "-i", default=".", help="Girdi klasörü. Varsayılan: mevcut klasör")
-    parser.add_argument("--output", "-o", default="bins", help="Çıktı klasörü. Varsayılan: ./bins")
-    parser.add_argument("--format", choices=("moc3", "moc2"), default="moc3", help="Çıktı formatı. Varsayılan: moc3")
-    parser.add_argument("--raw", action="store_true", help="Kısa yol: --format moc2")
-    parser.add_argument("--threshold", "-t", type=int, default=DEFAULT_THRESHOLD, help="Beyaz eşik değeri 0-255. Varsayılan: 128")
-    parser.add_argument("--invert", action="store_true", help="Siyah/beyazı ters çevir")
-    parser.add_argument("--resize", type=parse_resize, default=(DEFAULT_WIDTH, DEFAULT_HEIGHT), help="Çıkış boyutu. Varsayılan: 128x64")
-    parser.add_argument("--fit", choices=("stretch", "contain", "cover"), default="stretch", help="Resize modu. Varsayılan eski davranış: stretch")
-    parser.add_argument("--background", type=parse_background, default=(0, 0, 0), help="Şeffaf alan arka planı: black, white veya #RRGGBB")
-    parser.add_argument("--speed", "-s", type=float, default=DEFAULT_SPEED, help="Oynatma hızı. 1.0 normal, 2.0 iki kat hızlı, 0.5 yarı hız")
-    parser.add_argument("--preview", action="store_true", help="Frame preview PNG'leri de üret")
-    parser.add_argument("--combine", metavar="OUTPUT_NAME", help="Verilen statik görselleri tek animasyon .bin dosyasına birleştir")
-    parser.add_argument("--delays", metavar="MS,MS,MS", help="--combine için frame süreleri")
-    parser.add_argument("--allow-trim", action="store_true", help="255 frame üstünü toplam süreyi yaklaşık koruyarak 255 frame'e örnekle")
-    parser.add_argument("--verbose", "-v", action="store_true", help="Ayrıntılı çıktı")
+    parser.add_argument("files", nargs="*", help="Files or wildcard patterns. If empty, the --input folder is scanned.")
+    parser.add_argument("--input", "-i", default=".", help="Input folder. Default: current folder")
+    parser.add_argument("--output", "-o", default="bins", help="Output folder. Default: ./bins")
+    parser.add_argument("--format", choices=("moc3", "moc2"), default="moc3", help="Output format. Default: moc3")
+    parser.add_argument("--raw", action="store_true", help="Shortcut for --format moc2")
+    parser.add_argument("--threshold", "-t", type=int, default=DEFAULT_THRESHOLD, help="White threshold 0-255. Default: 128")
+    parser.add_argument("--invert", action="store_true", help="Invert black and white")
+    parser.add_argument("--resize", type=parse_resize, default=(DEFAULT_WIDTH, DEFAULT_HEIGHT), help="Output size. Default: 128x64")
+    parser.add_argument("--fit", choices=("stretch", "contain", "cover"), default="stretch", help="Resize mode. Default: stretch")
+    parser.add_argument("--background", type=parse_background, default=(0, 0, 0), help="Background for transparent areas: black, white or #RRGGBB")
+    parser.add_argument("--speed", "-s", type=float, default=DEFAULT_SPEED, help="Playback speed. 1.0 normal, 2.0 twice as fast, 0.5 half speed")
+    parser.add_argument("--preview", action="store_true", help="Also write frame preview PNGs")
+    parser.add_argument("--combine", metavar="OUTPUT_NAME", help="Combine the given still images into one animation .bin")
+    parser.add_argument("--delays", metavar="MS,MS,MS", help="Frame durations for --combine")
+    parser.add_argument("--allow-trim", action="store_true", help="Resample animations over 255 frames to 255, roughly keeping the total duration")
+    parser.add_argument("--verbose", "-v", action="store_true", help="Verbose output")
     return parser
 
 
@@ -551,24 +551,24 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.format = "moc2"
 
     if not (0 <= args.threshold <= 255):
-        print("HATA: --threshold 0-255 aralığında olmalı.")
+        print("ERROR: --threshold must be between 0 and 255.")
         return 1
     if args.speed <= 0:
-        print("HATA: --speed pozitif olmalı.")
+        print("ERROR: --speed must be positive.")
         return 1
 
     width, height = args.resize
     if (width, height) != (128, 64):
-        print("UYARI: Mochi firmware'i normalde 128x64 bekler. Farklı boyut yüklemede reddedilebilir.")
+        print("WARNING: the Mochi firmware expects 128x64. Other sizes will be rejected on upload.")
 
     try:
         input_files = collect_inputs(args)
     except Exception as exc:
-        print(f"HATA: {exc}")
+        print(f"ERROR: {exc}")
         return 1
 
     if not input_files:
-        print("Çevrilecek dosya bulunamadı.")
+        print("No files to convert.")
         return 0
 
     output_dir = Path(args.output)
@@ -578,14 +578,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if preview_dir:
         preview_dir.mkdir(parents=True, exist_ok=True)
 
-    print("Mochi BIN dönüştürücü")
+    print("Mochi BIN converter")
     print(f"  Format: {args.format.upper()}")
-    print(f"  Boyut: {width}x{height}")
+    print(f"  Size: {width}x{height}")
     print(f"  Threshold: {args.threshold}")
-    print(f"  Hız: {args.speed}x")
+    print(f"  Speed: {args.speed}x")
     print(f"  Fit: {args.fit}")
-    print(f"  Çıktı: {output_dir.resolve()}")
-    print(f"  Dosya: {len(input_files)}")
+    print(f"  Output: {output_dir.resolve()}")
+    print(f"  Files: {len(input_files)}")
     print()
 
     if args.combine:
@@ -605,10 +605,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
                 save_previews(frames, preview_dir, output_path.stem, width, height)
             size = output_path.stat().st_size
             duration = sum(units_to_ms(f.delay_units) for f in frames)
-            print(f"Bitti: {output_path.name} | {args.format.upper()} | {len(frames)} frame | {duration} ms | {size:,} byte")
+            print(f"Done: {output_path.name} | {args.format.upper()} | {len(frames)} frames | {duration} ms | {size:,} bytes")
             return 0
         except Exception as exc:
-            print(f"HATA: {exc}")
+            print(f"ERROR: {exc}")
             if args.verbose:
                 import traceback
                 traceback.print_exc()
@@ -635,14 +635,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             )
         except Exception as exc:
             fail += 1
-            print(f"  HATA: {path} -> {exc}")
+            print(f"  ERROR: {path} -> {exc}")
             if args.verbose:
                 import traceback
                 traceback.print_exc()
 
     print()
-    print(f"Bitti: {success} başarılı, {fail} başarısız")
-    print(f"Toplam: {total_frames} frame, {total_size:,} byte ({total_size / 1024:.1f} KB)")
+    print(f"Done: {success} succeeded, {fail} failed")
+    print(f"Total: {total_frames} frames, {total_size:,} bytes ({total_size / 1024:.1f} KB)")
     return 0 if fail == 0 else 1
 
 
