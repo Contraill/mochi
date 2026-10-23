@@ -588,6 +588,7 @@ struct MochiConfig {
   String currentFace;
   String wifiSSID;        // ev WiFi SSID
   String wifiPassword;    // ev WiFi parola
+  String apPassword;      // web panelinden degistirilen AP parolasi; bos ise AP_PASSWORD
   bool wifiAutoConnect;
   int wifiTimeoutMinutes; // AP acikken web etkinligi yoksa kac dakika sonra kapansin
   int wifiTapCount;       // WiFi AP acmak icin gereken hizli dokunma sayisi
@@ -664,8 +665,9 @@ uint8_t accelReadReg(uint8_t reg);
 void accelWriteReg(uint8_t reg, uint8_t val);
 void applyAccelHardwareConfig(float transientThresholdG);
 void setupAccelerometer();
-void IRAM_ATTR accelISR_INT1();
-void IRAM_ATTR accelISR_INT2();
+// IRAM_ATTR sadece tanimda: her IRAM_ATTR ayri section uretir, bildirimde de olursa cakisir.
+void accelISR_INT1();
+void accelISR_INT2();
 void handleAccelEvents();
 void handleAccelPollingFallback();
 bool triggerAccelReaction(String* list, int count, String* history, int& histCnt, unsigned long* cooldownEnd, unsigned long cooldownMs);
@@ -696,6 +698,8 @@ void scheduleNextRandomEvent();
 void scheduleNextIdleEvent();                      // 1059'da loadDefaultIdleFace cagriliyor, ondan once decl gerekli
 bool loadDefaultIdleFace(bool scheduleIdleEventNow); // 1059 ve sonrasinda 1590'dan once cagriliyor
 void startWiFiAP();
+bool isValidApPassword(const String& pw);
+const char* getAPPassword();
 void stopWiFiAP();
 void restoreDefaultFaceAfterWiFi();
 void wakeFromSleepMode();
@@ -1846,6 +1850,7 @@ void loadConfig() {
   config.currentFace = "";
   config.wifiSSID = "";
   config.wifiPassword = "";
+  config.apPassword = "";
   config.wifiAutoConnect = false;
   config.wifiTimeoutMinutes = 15;
   config.wifiTapCount = DEFAULT_TAP_TRIGGER_COUNT;
@@ -1958,6 +1963,8 @@ void loadConfig() {
   config.defaultFace = config.currentFace;
   config.wifiSSID = doc["wifiSSID"] | "";
   config.wifiPassword = doc["wifiPassword"] | "";
+  config.apPassword = doc["apPassword"] | "";
+  if(!isValidApPassword(config.apPassword)) config.apPassword = "";
   config.wifiAutoConnect = doc["wifiAutoConnect"] | false;
   config.wifiTimeoutMinutes = doc["wifiTimeoutMinutes"] | 15;
   if(config.wifiTimeoutMinutes < 1) config.wifiTimeoutMinutes = 1;
@@ -2146,6 +2153,7 @@ void saveConfig() {
   doc["currentFace"] = config.currentFace;
   doc["wifiSSID"] = config.wifiSSID;
   doc["wifiPassword"] = config.wifiPassword;
+  doc["apPassword"] = config.apPassword;
   doc["wifiAutoConnect"] = config.wifiAutoConnect;
   doc["wifiTimeoutMinutes"] = config.wifiTimeoutMinutes;
   doc["wifiTapCount"] = config.wifiTapCount;
@@ -3610,6 +3618,20 @@ void drawBatteryNotification() {
 // ============================================================
 // WIFI / AP
 // ============================================================
+// AP parolasi web panelinden degistirilebilir. WPA2 parolasi 8-63 yazdirilabilir
+// ASCII karakter olmali; gecersiz veya bos ise derlemedeki AP_PASSWORD kullanilir.
+bool isValidApPassword(const String& pw) {
+  if(pw.length() < 8 || pw.length() > 63) return false;
+  for(size_t i = 0; i < pw.length(); i++) {
+    if(pw[i] < 32 || pw[i] > 126) return false;
+  }
+  return true;
+}
+
+const char* getAPPassword() {
+  return isValidApPassword(config.apPassword) ? config.apPassword.c_str() : AP_PASSWORD;
+}
+
 String getAPSSID() {
   return String(AP_SSID);
 }
@@ -3727,7 +3749,8 @@ void startWiFiAP() {
   if(wifiActive) return;
 
   String ssid = getAPSSID();
-  Serial.printf("[WIFI] ap_start ssid=%s\n", ssid.c_str());
+  // Parola unutulursa USB seri monitorden okunabilsin (fiziksel erisim gerektirir).
+  Serial.printf("[WIFI] ap_start ssid=%s pass=%s\n", ssid.c_str(), getAPPassword());
 
   heapBeforeWiFiStart = ESP.getFreeHeap();
 
@@ -3778,7 +3801,7 @@ void startWiFiAP() {
   IPAddress gateway(192, 168, 4, 1);
   IPAddress subnet(255, 255, 255, 0);
   WiFi.softAPConfig(apIP, gateway, subnet);
-  bool apStarted = WiFi.softAP(ssid.c_str(), AP_PASSWORD, 1, false, 4);
+  bool apStarted = WiFi.softAP(ssid.c_str(), getAPPassword(), 1, false, 4);
   if(!apStarted) {
     Serial.println("HATA: WiFi AP baslatilamadi");
     WiFi.mode(WIFI_OFF);
@@ -4659,6 +4682,7 @@ void handleApiWifiStatus() {
   JsonDocument doc;
   doc["apSSID"] = getAPSSID();
   doc["apClients"] = WiFi.softAPgetStationNum();
+  doc["apPasswordCustom"] = isValidApPassword(config.apPassword);
   doc["staConnected"] = (WiFi.status() == WL_CONNECTED);
   if(WiFi.status() == WL_CONNECTED) {
     doc["ip"] = WiFi.localIP().toString();
@@ -4684,6 +4708,25 @@ void handleApiWifiScan() {
   
   String out; serializeJson(doc, out);
   server.send(200, "application/json", out);
+}
+
+// AP parolasini degistirir. Yeni parola WiFi bir sonraki acilisinda gecerli olur;
+// bagli telefon kopmasin diye calisan AP yeniden baslatilmaz. Bos parola varsayilana doner.
+void handleApiWifiApPassword() {
+  lastWebActivityTime = millis();
+  JsonDocument doc;
+  if(deserializeJson(doc, server.arg("plain"))) {
+    server.send(400, "text/plain", "json err");
+    return;
+  }
+  String pw = doc["password"] | "";
+  if(pw.length() > 0 && !isValidApPassword(pw)) {
+    server.send(400, "text/plain", "password must be 8-63 characters (ASCII only)");
+    return;
+  }
+  config.apPassword = pw;
+  saveConfig();
+  server.send(200, "text/plain", "ok");
 }
 
 void handleApiWifiConnect() {
@@ -5385,6 +5428,7 @@ void setupWebServer() {
   server.on("/api/wifi/status", HTTP_GET, handleApiWifiStatus);
   server.on("/api/wifi/scan", HTTP_GET, handleApiWifiScan);
   server.on("/api/wifi/connect", HTTP_POST, handleApiWifiConnect);
+  server.on("/api/wifi/appassword", HTTP_POST, handleApiWifiApPassword);
   server.on("/api/sys", HTTP_GET, handleApiSys);
   server.on("/api/battery", HTTP_GET, handleApiBattery);
   server.on("/api/script", HTTP_GET, handleApiScript);

@@ -49,10 +49,30 @@ jobs:
             ${{ matrix.sketch }}
           ls -l build
 
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+
+      # Optional "full" image: firmware + LittleFS with every face and the sample config.
+      - name: Build full image (faces + config)
+        run: |
+          MKLITTLEFS=$(find ~/.arduino15/packages/esp32/tools -type f -name mklittlefs | head -n 1)
+          test -n "$MKLITTLEFS" || { echo "mklittlefs not found in the esp32 core tools"; exit 1; }
+          mkdir -p fsdata/faces
+          cp Faces/bins/*.bin fsdata/faces/
+          cp mochi_config.json fsdata/config.json
+          "$MKLITTLEFS" -c fsdata -b 4096 -p 256 -s 0x270000 build/storage.bin
+          pip install littlefs-python
+          python tools/check_fs_image.py build/storage.bin
+          python tools/full_image.py ${{ matrix.sketch }}/partitions.csv \
+            build/${{ matrix.sketch }}.ino.merged.bin build/storage.bin build/${{ matrix.sketch }}-full.bin
+
       - uses: actions/upload-artifact@v7
         with:
           name: ${{ matrix.sketch }}
-          path: build/${{ matrix.sketch }}.ino.merged.bin
+          path: |
+            build/${{ matrix.sketch }}.ino.merged.bin
+            build/${{ matrix.sketch }}-full.bin
           if-no-files-found: error
 
   tests:
@@ -68,7 +88,7 @@ jobs:
 
       - name: Install
         run: |
-          pip install pillow pytest pytest-timeout playwright
+          pip install pillow pytest pytest-timeout playwright littlefs-python
           playwright install --with-deps chromium
 
       - name: Test
@@ -92,15 +112,21 @@ jobs:
         run: |
           cp dist/Mochi_EN/Mochi_EN.ino.merged.bin mochi-en.bin
           cp dist/Mochi_TR/Mochi_TR.ino.merged.bin mochi-tr.bin
+          cp dist/Mochi_EN/Mochi_EN-full.bin mochi-en-full.bin
+          cp dist/Mochi_TR/Mochi_TR-full.bin mochi-tr-full.bin
           cat > notes.md <<'EOF'
           Prebuilt firmware for the ESP32-C3 SuperMini (4MB flash).
 
-          - `mochi-en.bin`: English web UI
-          - `mochi-tr.bin`: Turkish web UI
+          | File | Web panel | Faces |
+          |---|---|---|
+          | `mochi-en.bin` | English | none, upload them from the web panel |
+          | `mochi-tr.bin` | Turkish | none, upload them from the web panel |
+          | `mochi-en-full.bin` | English | all 53 faces and the sample settings preinstalled |
+          | `mochi-tr-full.bin` | Turkish | all 53 faces and the sample settings preinstalled |
 
-          Flash at offset `0x0` with [ESP Web Flasher](https://espressif.github.io/esptool-js/) or `esptool --chip esp32c3 write_flash 0x0 mochi-en.bin`. This is a full flash image: it also clears uploaded faces, so upload them again afterwards.
+          Flash at offset `0x0` with [ESP Web Flasher](https://espressif.github.io/esptool-js/) or `esptool --chip esp32c3 write_flash 0x0 mochi-en.bin`. Every file is a full flash image: it replaces the faces and settings already on the device.
 
-          Default WiFi password: `example1`. Build from source to change it or to calibrate the battery reading.
+          Default WiFi password: `example1`. Change it in the web panel (WiFi tab).
           EOF
-          gh release create "$GITHUB_REF_NAME" mochi-en.bin mochi-tr.bin \
+          gh release create "$GITHUB_REF_NAME" mochi-en.bin mochi-tr.bin mochi-en-full.bin mochi-tr-full.bin \
             --repo "$GITHUB_REPOSITORY" --title "Mochi $GITHUB_REF_NAME" --notes-file notes.md

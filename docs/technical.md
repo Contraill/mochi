@@ -17,7 +17,7 @@ LittleFS is mounted at boot. If mounting fails (blank or corrupt partition), the
 Files on LittleFS:
 
 - `/faces/<name>.bin`: one file per face, MOC2 or MOC3 (below). Names are limited to `A-Z a-z 0-9 _ -`, max 32 characters (`sanitizeFaceName`).
-- `/config.json`: all settings. Writes go to `/config.tmp` first and are then renamed, so a power cut during a save can't leave a half-written file. After a successful load the file is copied to `/config.bak`, and that backup is used if `/config.json` fails to parse.
+- `/config.json`: all settings, including the WiFi password set from the web panel (`apPassword`; empty means the built-in `AP_PASSWORD`). The password is never sent back by `/api/config` or included in the config download. Writes go to `/config.tmp` first and are then renamed, so a power cut during a save can't leave a half-written file. After a successful load the file is copied to `/config.bak`, and that backup is used if `/config.json` fails to parse.
 
 ## Animation format
 
@@ -182,6 +182,10 @@ In deep sleep the ADC is off and touch wake depends on a *digital* HIGH on GPIO1
 
 The firmware does not cut power at low voltage; deep-discharge protection is the job of the battery's protection circuit (see [testing.md](testing.md)).
 
+## Web panel source
+
+The panel is a single HTML file per language (`web/index_en.html`, `web/index_tr.html`) with inline CSS and JS, no build step or framework. `tools/build_web.py` gzips it into a byte array in each sketch's `Mochi_html.h` (≈27KB instead of ≈108KB), and `/` serves it with `Content-Encoding: gzip`.
+
 ## Web API
 
 All endpoints are served only while WiFi is on.
@@ -199,7 +203,8 @@ All endpoints are served only while WiFi is on.
 | POST | `/api/test?kind=&name=` | play a reaction without saving |
 | POST | `/api/test-accel?type=&name=` | play an accelerometer reaction |
 | GET | `/api/accel/live` | live accelerometer readings |
-| GET | `/api/wifi/status`, `/api/wifi/scan` | WiFi status and scan |
+| GET | `/api/wifi/status`, `/api/wifi/scan` | WiFi status (incl. whether a custom AP password is set) and scan |
+| POST | `/api/wifi/appassword` | set the AP password (`{"password": "..."}`, 8-63 ASCII characters; empty resets to the default). Takes effect the next time WiFi starts. |
 | POST | `/api/wifi/connect` | save home WiFi credentials |
 | GET | `/api/sys`, `/api/battery` | system and battery status |
 | POST | `/api/restart`, `/api/sleeptest` | restart / enter sleep in 1 s |

@@ -34,6 +34,7 @@ class MockDevice(ThreadingHTTPServer):
         self.ui_gz = ui_gz
         self.config = copy.deepcopy(BASE_CONFIG)
         self.config["accel"] = {"ready": True, "softShakeReactions": [], "hardShakeReactions": []}
+        self.ap_password = ""
 
 
 class Handler(BaseHTTPRequestHandler):
@@ -73,7 +74,8 @@ class Handler(BaseHTTPRequestHandler):
         if url.path == "/api/battery":
             return self.send(200, {"percent": 80, "voltage": 4.0, "charging": False})
         if url.path == "/api/wifi/status":
-            return self.send(200, {"apSSID": "R2D2", "apClients": 1, "staConnected": False, "ip": "192.168.4.1"})
+            return self.send(200, {"apSSID": "R2D2", "apClients": 1, "staConnected": False, "ip": "192.168.4.1",
+                                   "apPasswordCustom": bool(dev.ap_password)})
         if url.path == "/api/ping":
             return self.send(200, "ok")
         return self.send(404, "Not found")
@@ -83,6 +85,12 @@ class Handler(BaseHTTPRequestHandler):
         body = self.rfile.read(int(self.headers.get("Content-Length") or 0))
         if url.path == "/api/config":
             dev.config.update(json.loads(body))  # firmware merges posted keys into its config
+            return self.send(200, "ok")
+        if url.path == "/api/wifi/appassword":
+            pw = json.loads(body).get("password", "")
+            if pw and not (8 <= len(pw) <= 63 and all(32 <= ord(c) <= 126 for c in pw)):
+                return self.send(400, "bad password")  # same rule as isValidApPassword()
+            dev.ap_password = pw
             return self.send(200, "ok")
         if url.path in ("/api/test", "/api/setactive"):
             return self.send(200, "ok")
@@ -203,3 +211,42 @@ def test_english_ui_has_no_turkish(ui):
                                        "els => els.flatMap(e => [e.placeholder || '', e.title || ''])")
     found = sorted({m.group(0) for t in texts for m in TURKISH.finditer(t)})
     assert found == [], found
+
+
+def test_ap_password_rejects_bad_input_before_sending(ui):
+    page, dev, errors, _ = ui
+    open_tab(page, "wifi")
+    sent = []
+    page.on("request", lambda r: sent.append(r) if "/api/wifi/appassword" in r.url else None)
+    for pw, confirm in (("short", "short"), ("longenough1", "different1"), ("şifreşifre1", "şifreşifre1")):
+        page.fill("#ap-pass-new", pw)
+        page.fill("#ap-pass-confirm", confirm)
+        page.click("#btn-ap-pass-save")
+        page.wait_for_selector("#toast.show.error")
+        page.evaluate("document.querySelector('#toast').className = 'toast'")
+    assert sent == []
+    assert dev.ap_password == ""
+    assert errors == []
+
+
+def test_ap_password_save_and_reset(ui):
+    page, dev, errors, _ = ui
+    open_tab(page, "wifi")
+    page.wait_for_function("document.querySelector('#ap-pass-status').textContent !== ''")
+    default_text = page.inner_text("#ap-pass-status")
+
+    page.fill("#ap-pass-new", "mochi-secret")
+    page.fill("#ap-pass-confirm", "mochi-secret")
+    with page.expect_response(lambda r: "/api/wifi/appassword" in r.url) as resp:
+        page.click("#btn-ap-pass-save")
+    assert json.loads(resp.value.request.post_data) == {"password": "mochi-secret"}
+    assert dev.ap_password == "mochi-secret"
+    page.wait_for_function(f"document.querySelector('#ap-pass-status').textContent !== {json.dumps(default_text)}")
+    assert page.input_value("#ap-pass-new") == ""
+
+    page.click("#btn-ap-pass-reset")
+    with page.expect_response(lambda r: "/api/wifi/appassword" in r.url) as resp:
+        page.click("#modal-ok")
+    assert json.loads(resp.value.request.post_data) == {"password": ""}
+    page.wait_for_function(f"document.querySelector('#ap-pass-status').textContent === {json.dumps(default_text)}")
+    assert errors == []

@@ -1,0 +1,1971 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mochi</title>
+<style>
+:root {
+  --bg:#070b13;
+  --bg2:#0d1220;
+  --panel:#111827;
+  --card:rgba(17,24,39,.78);
+  --card-solid:#151d2e;
+  --card-soft:rgba(24,32,49,.72);
+  --border:rgba(148,163,184,.16);
+  --border-strong:rgba(56,189,248,.36);
+  --primary:#38bdf8;
+  --primary2:#2563eb;
+  --secondary:#22d3ee;
+  --success:#10b981;
+  --warning:#f59e0b;
+  --danger:#ef4444;
+  --text:#eef6ff;
+  --text-dim:#8fa0b8;
+  --muted:#5e6d83;
+  --shadow:0 24px 70px rgba(0,0,0,.42);
+  --glow:0 0 28px rgba(56,189,248,.28);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth;background:#070b13;overscroll-behavior:none}
+body{
+  background:
+    radial-gradient(circle at 18% -10%, rgba(37,99,235,.22), transparent 38%),
+    radial-gradient(circle at 92% 8%, rgba(34,211,238,.12), transparent 35%),
+    linear-gradient(180deg,#070b13 0%,#0a0f1d 55%,#070b13 100%);
+  color:var(--text);
+  font-family:Inter,-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  min-height:100vh;
+  padding:0 12px 26px;
+  font-size:14px;
+  overscroll-behavior:none;
+  overflow-x:hidden;
+}
+
+body::before{content:'';position:fixed;inset:0;pointer-events:none;background-image:linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.02) 1px,transparent 1px);background-size:42px 42px;mask-image:linear-gradient(to bottom,rgba(0,0,0,.6),transparent 70%)}
+header{
+  position:sticky;top:0;z-index:30;margin:0 -12px 16px;padding:14px 14px 12px;
+  display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;
+  background:rgba(7,11,19,.84);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);
+  border-bottom:1px solid var(--border);box-shadow:0 14px 45px rgba(0,0,0,.28);
+}
+header h1{font-size:20px;font-weight:800;letter-spacing:.2px;color:var(--text);-webkit-text-fill-color:initial;background:none;display:flex;align-items:center;gap:10px;text-align:left}
+header h1::before{content:'▣';display:inline-grid;place-items:center;width:34px;height:34px;border-radius:10px;background:linear-gradient(135deg,#0f3b67,#13243d);border:1px solid rgba(56,189,248,.35);color:var(--primary);box-shadow:var(--glow);font-size:19px}
+header p{grid-column:1/-1;color:var(--text-dim);font-size:12px;margin:0 0 4px 44px;text-align:left}
+.battery-badge{grid-column:2;grid-row:1/3;display:inline-flex;align-items:center;gap:8px;margin:0;padding:8px 10px;border:1px solid rgba(56,189,248,.25);border-radius:999px;background:linear-gradient(180deg,rgba(18,27,43,.9),rgba(10,15,26,.78));font-size:12px;color:var(--text);white-space:nowrap;box-shadow:inset 0 1px rgba(255,255,255,.06)}
+.battery-badge .mini-bar{width:44px;height:10px;border:1px solid var(--border);border-radius:3px;overflow:hidden;position:relative;background:#0a0f1d}.battery-badge .mini-bar::after{content:'';position:absolute;right:-4px;top:2px;width:3px;height:4px;background:var(--border);border-radius:1px}.battery-badge .mini-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--success),var(--primary));transition:width .25s}.battery-badge.low .mini-fill{background:linear-gradient(90deg,#f59e0b,#ef4444)}.battery-badge.critical{border-color:#ef4444}
+.tabs{position:sticky;top:76px;z-index:25;display:flex;gap:8px;background:rgba(13,18,32,.74);padding:7px;border-radius:16px;margin:0 0 16px;border:1px solid var(--border);overflow-x:auto;backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);box-shadow:0 12px 34px rgba(0,0,0,.25)}
+.tab{flex:1;min-width:94px;padding:10px 12px;background:transparent;border:none;color:var(--text-dim);cursor:pointer;border-radius:12px;font-size:13px;font-weight:700;transition:all .18s;white-space:nowrap}.tab:hover{color:var(--text);background:rgba(255,255,255,.04)}.tab.active{background:linear-gradient(135deg,rgba(56,189,248,.26),rgba(37,99,235,.35));color:#fff;border:1px solid rgba(56,189,248,.38);box-shadow:var(--glow)}
+.panel{display:none;max-width:1180px;margin:0 auto}.panel.active{display:block}.card{position:relative;background:linear-gradient(180deg,rgba(18,27,43,.88),rgba(12,18,31,.82));backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border:1px solid var(--border);border-radius:22px;padding:18px;margin-bottom:16px;box-shadow:var(--shadow);overflow:hidden}.card::before{content:'';position:absolute;inset:0 0 auto 0;height:1px;background:linear-gradient(90deg,transparent,rgba(56,189,248,.55),transparent);opacity:.8}.card h2{font-size:17px;font-weight:800;margin-bottom:12px;color:var(--text);display:inline-flex;align-items:center;gap:8px}.card h2::before{content:'';width:7px;height:18px;border-radius:999px;background:linear-gradient(var(--primary),var(--primary2));box-shadow:0 0 16px rgba(56,189,248,.55)}.card h3{font-size:12px;font-weight:800;margin:16px 0 8px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1.2px}.card p{line-height:1.55}
+.btn{background:linear-gradient(135deg,var(--primary2),var(--primary));color:#fff;border:1px solid rgba(56,189,248,.35);padding:10px 16px;border-radius:13px;font-weight:800;font-size:13px;cursor:pointer;transition:all .15s;box-shadow:0 12px 26px rgba(37,99,235,.24)}.btn:hover{transform:translateY(-1px);box-shadow:var(--glow)}.btn:active{transform:translateY(0)}.btn:disabled{opacity:.45;cursor:not-allowed;transform:none;box-shadow:none}.btn-sm{padding:7px 10px;font-size:12px}.btn-secondary{background:rgba(21,29,46,.86);border:1px solid var(--border);color:var(--text);box-shadow:none}.btn-danger{background:linear-gradient(135deg,#b91c1c,#ef4444);border-color:rgba(239,68,68,.45)}.btn-success{background:linear-gradient(135deg,#047857,var(--success));border-color:rgba(16,185,129,.4)}
+.input,select{background:rgba(8,13,24,.78);border:1px solid var(--border);color:var(--text);padding:11px 12px;border-radius:13px;font-size:13px;width:100%;font-family:inherit;outline:none;transition:border-color .15s,box-shadow .15s}select{appearance:auto}.input:focus,select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+.toolbar{display:grid;grid-template-columns:minmax(180px,1.35fr) repeat(2,minmax(145px,.55fr)) auto auto;gap:10px;flex-wrap:wrap;margin-bottom:16px;align-items:center}.toolbar .input{min-width:0}.face-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(178px,1fr));gap:14px;margin-top:12px}.face-card{background:linear-gradient(180deg,rgba(16,24,39,.95),rgba(8,13,24,.9));border:1px solid var(--border);border-radius:20px;padding:12px;cursor:pointer;transition:all .18s;position:relative;overflow:hidden}.face-card::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 10%,rgba(56,189,248,.12),transparent 52%);opacity:.9;pointer-events:none}.face-card:hover{border-color:var(--border-strong);transform:translateY(-2px);box-shadow:var(--glow)}.face-card.active{border-color:var(--success);box-shadow:0 0 0 1px rgba(16,185,129,.25),0 0 26px rgba(16,185,129,.16)}.face-card.active::after{content:'✓';position:absolute;top:10px;right:10px;background:var(--success);color:white;width:24px;height:24px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:bold;z-index:2}.face-preview{width:100%;aspect-ratio:2;background:#000;border-radius:13px;margin-bottom:10px;image-rendering:pixelated;border:1px solid rgba(255,255,255,.08);box-shadow:inset 0 0 22px rgba(56,189,248,.08)}.face-name{font-size:13px;font-weight:800;text-align:left;word-break:break-all;position:relative;z-index:1}.face-info{font-size:11px;color:var(--text-dim);text-align:left;margin-top:4px;position:relative;z-index:1}.face-actions{display:flex;gap:6px;margin-top:10px;position:relative;z-index:1}.face-actions .btn{flex:1;font-size:11px;padding:7px 6px}.category-chip{display:inline-flex;text-align:center;color:#a7f3d0;font-size:10px;margin-top:7px;padding:4px 8px;border:1px solid rgba(16,185,129,.25);background:rgba(16,185,129,.09);border-radius:999px;position:relative;z-index:1}.usage-badges{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0 2px;min-height:22px;position:relative;z-index:1}.usage-badge{font-size:9px;font-weight:900;letter-spacing:.35px;padding:4px 6px;border-radius:999px;border:1px solid rgba(56,189,248,.22);background:rgba(56,189,248,.08);color:#a5f3fc;text-transform:uppercase}.usage-badge.unused{border-color:rgba(245,158,11,.33);background:rgba(245,158,11,.1);color:#fcd34d}.usage-badge.default{border-color:rgba(16,185,129,.35);background:rgba(16,185,129,.12);color:#86efac}.usage-badge.sleep{border-color:rgba(139,92,246,.32);background:rgba(139,92,246,.12);color:#c4b5fd}.face-category{position:relative;z-index:1}
+.list-item{background:rgba(8,13,24,.72);border:1px solid var(--border);border-radius:13px;padding:10px 12px;margin-bottom:7px;display:flex;align-items:center;gap:8px;cursor:move;user-select:none}.list-item.dragging{opacity:.4}.list-item.drag-over{border-color:var(--primary)}.handle{color:var(--text-dim);font-size:18px;cursor:move;padding:0 4px}.list-item .name{flex:1}.checkbox-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}.check-item{background:rgba(8,13,24,.68);border:1px solid var(--border);border-radius:13px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:9px;font-size:12px;transition:all .15s;min-height:42px}.check-item:hover{border-color:var(--border-strong);background:rgba(56,189,248,.06)}.check-item.checked{border-color:rgba(16,185,129,.42);background:rgba(16,185,129,.12)}.check-item .check-icon{width:17px;height:17px;border:2px solid var(--muted);border-radius:5px;flex-shrink:0;display:flex;align-items:center;justify-content:center}.check-item.checked .check-icon{border-color:var(--success);background:var(--success);color:white;font-size:10px}.check-item.checked .check-icon::after{content:'✓'}
+.row{display:flex;gap:10px;align-items:center;margin-bottom:12px}.row>*{flex:1}.range-row{display:flex;align-items:center;gap:12px;margin:12px 0}.range-row label{min-width:120px;font-size:12px;color:var(--text-dim);font-weight:700}.range-row input[type=range]{flex:1;accent-color:var(--primary)}.range-row .value{min-width:54px;text-align:right;font-weight:800;color:var(--primary)}.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(135px,1fr));gap:12px}.stat{background:linear-gradient(180deg,rgba(8,13,24,.78),rgba(15,23,42,.74));padding:15px;border-radius:16px;border:1px solid var(--border);text-align:left}.stat .label{font-size:10px;color:var(--text-dim);text-transform:uppercase;letter-spacing:1px;font-weight:900}.stat .value{font-size:22px;font-weight:900;margin-top:6px;color:var(--text)}.storage-wrap{background:#0a0f1d;border:1px solid var(--border);border-radius:999px;height:13px;overflow:hidden;margin-top:10px}.storage-bar{height:100%;width:0%;background:linear-gradient(90deg,var(--success),var(--primary),var(--primary2));transition:width .25s}.mini-row{display:flex;gap:8px;align-items:center;margin-top:8px}.mini-row input,.mini-row select{padding:7px 9px;font-size:12px}.upload-report{margin-top:10px;font-size:12px;color:var(--text-dim);line-height:1.5}.upload-zone{border:2px dashed var(--border);border-radius:18px;padding:30px;text-align:center;cursor:pointer;transition:all .2s;margin-top:12px;background:rgba(8,13,24,.36)}.upload-zone:hover,.upload-zone.dragging{border-color:var(--primary);background:rgba(56,189,248,.06)}.upload-zone .icon{font-size:32px;margin-bottom:8px}.spinner{width:16px;height:16px;border:2px solid var(--text-dim);border-top-color:var(--primary);border-radius:50%;animation:spin .6s linear infinite;display:inline-block}@keyframes spin{to{transform:rotate(360deg)}}.empty-state{text-align:center;padding:40px 20px;color:var(--text-dim);grid-column:1/-1}.empty-state .icon{font-size:48px;margin-bottom:12px}.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:#111827;border:1px solid var(--border);padding:12px 18px;border-radius:14px;z-index:1000;transition:transform .3s;box-shadow:var(--shadow)}.toast.show{transform:translateX(-50%) translateY(0)}.toast.success{border-color:var(--success)}.toast.error{border-color:var(--danger)}.modal{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:100;padding:16px}.modal.show{display:flex}.modal-content{background:#111827;border:1px solid var(--border);border-radius:20px;padding:24px;max-width:500px;width:100%;box-shadow:var(--shadow)}.modal-content h2{color:var(--primary);margin-bottom:12px;font-size:18px}.modal-actions{display:flex;gap:8px;margin-top:16px;justify-content:flex-end}
+
+.app-shell{max-width:1240px;margin:0 auto;min-height:100svh}
+.app-header{border-radius:0 0 24px 24px}
+.tab{display:flex;align-items:center;justify-content:center;gap:8px}
+.tab .tab-ico{font-size:15px;line-height:1;opacity:.9}
+.dashboard-grid{display:grid;grid-template-columns:1.08fr .92fr;gap:16px;margin-bottom:16px}
+.compact-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.metric-card{position:relative;background:linear-gradient(180deg,rgba(10,16,28,.9),rgba(11,19,33,.72));border:1px solid var(--border);border-radius:18px;padding:14px;overflow:hidden}
+.metric-card::after{content:'';position:absolute;inset:auto -25% -65% auto;width:120px;height:120px;background:radial-gradient(circle,rgba(56,189,248,.18),transparent 68%);pointer-events:none}
+.metric-card span{display:block;font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--text-dim);margin-bottom:8px}
+.metric-card strong{display:block;font-size:20px;line-height:1.1;font-weight:900;color:var(--text)}
+.hero-note{font-size:12px;color:var(--text-dim);line-height:1.55}
+.hero-progress{margin-top:14px}
+.hero-progress.slim{margin-top:10px}
+.hero-progress .storage-wrap{margin-top:8px}
+.hero-progress-label{display:flex;justify-content:space-between;gap:8px;color:var(--text-dim);font-size:11px;font-weight:700}
+.wifi-hero-card{padding:0;background:none;border:none;box-shadow:none}
+.wifi-visual{position:relative;min-height:315px;padding:18px 18px 20px;border-radius:26px;background:linear-gradient(180deg,rgba(5,11,24,.96),rgba(4,10,20,.94));border:1px solid rgba(56,189,248,.14);overflow:hidden;box-shadow:0 26px 70px rgba(0,0,0,.42), inset 0 1px rgba(255,255,255,.05)}
+.wifi-visual::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 50% 18%,rgba(59,130,246,.22),transparent 28%),radial-gradient(circle at 15% 10%,rgba(34,211,238,.12),transparent 18%),linear-gradient(180deg,transparent,rgba(6,10,18,.36));pointer-events:none}
+.wifi-head{display:flex;justify-content:space-between;align-items:center;gap:12px;position:relative;z-index:1}
+.wifi-chip,.wifi-step{display:inline-flex;align-items:center;border:1px solid rgba(255,255,255,.08);border-radius:999px;padding:7px 11px;background:rgba(255,255,255,.04);font-size:12px;font-weight:800;color:var(--text-dim)}
+.wifi-step{color:var(--text)}
+.wifi-stage{position:relative;z-index:1;display:grid;place-items:center;margin-top:10px;padding-top:10px}
+.wifi-signal{position:relative;width:220px;height:160px;margin:0 auto}
+.wifi-signal .arc{position:absolute;left:50%;bottom:0;transform:translateX(-50%);border:5px solid rgba(59,130,246,.14);border-bottom:none;border-radius:180px 180px 0 0;filter:drop-shadow(0 0 12px rgba(59,130,246,.2))}
+.wifi-signal .arc.a1{width:70px;height:36px}
+.wifi-signal .arc.a2{width:118px;height:60px}
+.wifi-signal .arc.a3{width:168px;height:84px}
+.wifi-signal .arc.a4{width:214px;height:108px}
+.wifi-signal .dot{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);width:16px;height:16px;border-radius:50%;background:#60a5fa;box-shadow:0 0 18px rgba(96,165,250,.8),0 0 42px rgba(34,211,238,.25)}
+.wifi-visual.connected .wifi-signal .arc,.wifi-visual.connected .wifi-signal .dot{border-color:rgba(74,222,128,.36);background:#4ade80;box-shadow:0 0 18px rgba(74,222,128,.75),0 0 38px rgba(74,222,128,.3)}
+.wifi-visual.connected .wifi-signal .arc{background:none}
+.wifi-visual.scanning .wifi-signal .arc,.wifi-visual.connecting .wifi-signal .arc,.wifi-visual.select .wifi-signal .arc{border-color:rgba(96,165,250,.3)}
+.wifi-visual.scanning .wifi-signal .dot,.wifi-visual.connecting .wifi-signal .dot,.wifi-visual.select .wifi-signal .dot{animation:pulseGlow 1.2s ease-in-out infinite alternate}
+.wifi-visual.error .wifi-signal .arc{border-color:rgba(248,113,113,.28)}
+.wifi-visual.error .wifi-signal .dot{background:#ef4444;box-shadow:0 0 16px rgba(239,68,68,.75),0 0 34px rgba(239,68,68,.28)}
+.wifi-copy{position:relative;z-index:1;text-align:center;margin-top:8px}
+.wifi-title{font-size:32px;font-weight:900;letter-spacing:-.02em;color:#eaf3ff;text-shadow:0 0 16px rgba(255,255,255,.06)}
+.wifi-sub{font-size:14px;color:var(--text-dim);margin-top:4px}
+.wifi-network{font-size:16px;color:var(--text);font-weight:800;margin-top:14px}
+.wifi-hints{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin-top:12px}
+.wifi-hints span{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:12px;color:var(--text-dim)}
+.wifi-list-grid{display:grid;gap:10px;margin-top:12px}
+#wifi-list .list-item{display:grid;grid-template-columns:1fr auto;align-items:center;gap:10px;background:linear-gradient(180deg,rgba(11,18,31,.92),rgba(7,13,24,.92));border-radius:18px;padding:14px 16px;border:1px solid rgba(56,189,248,.14);cursor:pointer;transition:all .18s}
+#wifi-list .list-item:hover{transform:translateY(-2px);border-color:rgba(56,189,248,.34);box-shadow:0 0 0 1px rgba(56,189,248,.14),0 18px 34px rgba(0,0,0,.24)}
+#wifi-list .name{font-weight:800;color:var(--text)}
+.wifi-empty{padding:18px;border-radius:16px;background:rgba(255,255,255,.03);border:1px dashed rgba(255,255,255,.09);text-align:center;color:var(--text-dim)}
+.battery-hero-card{padding:18px 18px 20px}
+.battery-hero{display:grid;grid-template-columns:minmax(280px,360px) 1fr;gap:18px;align-items:center}
+.battery-visual{position:relative;padding:8px 4px 0;display:grid;place-items:center}
+.battery-arc,.flash-arc{--pct:0;--gauge:#facc15;position:relative;overflow:visible}
+.battery-arc{width:308px;height:196px}
+.battery-arc::before,.flash-arc::before{content:'';position:absolute;inset:0;background:conic-gradient(from 180deg at 50% 100%,rgba(255,255,255,.08) 0deg 180deg,transparent 180deg 360deg);opacity:.9}
+.battery-arc::after,.flash-arc::after{content:'';position:absolute;inset:0;background:conic-gradient(from 180deg at 50% 100%,var(--gauge) 0deg calc(var(--pct) * 1.8deg),transparent calc(var(--pct) * 1.8deg) 180deg,transparent 180deg 360deg)}
+.battery-arc::before,.battery-arc::after{-webkit-mask:radial-gradient(circle at 50% 100%,transparent 0 90px,#000 92px 136px,transparent 138px);mask:radial-gradient(circle at 50% 100%,transparent 0 90px,#000 92px 136px,transparent 138px)}
+.battery-arc::after{filter:drop-shadow(0 0 16px rgba(250,204,21,.38))}
+.flash-arc{--gauge:#34d399;width:210px;height:132px}
+.flash-arc::before,.flash-arc::after{-webkit-mask:radial-gradient(circle at 50% 100%,transparent 0 56px,#000 58px 94px,transparent 96px);mask:radial-gradient(circle at 50% 100%,transparent 0 56px,#000 58px 94px,transparent 96px)}
+.flash-arc::after{filter:drop-shadow(0 0 15px rgba(52,211,153,.35))}
+.battery-arc-center,.flash-arc-center{position:absolute;left:50%;transform:translateX(-50%);text-align:center;border:1px solid rgba(255,255,255,.06);backdrop-filter:blur(10px);box-shadow:0 18px 40px rgba(0,0,0,.22);display:grid;place-items:center;gap:4px}
+.battery-arc-center{bottom:-12px;padding:12px 14px 12px;width:54%;min-height:92px;border-radius:24px;background:linear-gradient(180deg,rgba(10,16,28,.92),rgba(7,11,20,.82))}
+.flash-arc-center{bottom:-8px;padding:10px 10px 10px;width:64%;min-height:74px;border-radius:20px;background:linear-gradient(180deg,rgba(8,16,24,.92),rgba(5,12,20,.82))}
+.battery-eyebrow{font-size:12px;font-weight:900;letter-spacing:1px;color:var(--text-dim);text-transform:uppercase}
+.battery-big{font-size:40px;line-height:1;font-weight:900;color:#fff;text-shadow:0 0 18px rgba(255,255,255,.08);margin-top:2px}
+.flash-big{font-size:32px;line-height:1;font-weight:900;color:#f8fafc;text-shadow:0 0 18px rgba(255,255,255,.08);margin-top:2px}
+.battery-small{font-size:12px;color:var(--text-dim);margin-top:4px;line-height:1.35}
+.battery-side{display:grid;gap:12px}
+.flash-hero-layout{display:grid;grid-template-columns:220px 1fr;gap:14px;align-items:center}
+.flash-visual{position:relative;display:grid;place-items:center;padding-top:2px}
+.flash-meta{display:grid;gap:10px}
+.flash-kv{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05);font-size:13px;color:var(--text-dim)}
+.flash-kv strong{font-size:14px;color:var(--text)}
+.stat-grid.tight{gap:10px}
+.glass-panel{background:linear-gradient(180deg,rgba(8,14,25,.8),rgba(8,12,20,.6));border:1px solid rgba(255,255,255,.06);border-radius:20px;padding:16px}
+.pill-row{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.soft-pill{display:inline-flex;align-items:center;gap:6px;padding:8px 11px;border-radius:999px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.06);font-size:12px;color:var(--text-dim)}
+.soft-pill strong{color:var(--text);font-size:12px}
+.flash-status-note{font-size:12px;color:var(--text-dim);padding:8px 10px;border-radius:12px;background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.05)}
+.field-stack{display:grid;gap:8px;flex:1;min-width:0}
+.field-label{font-size:12px;font-weight:700;color:var(--text-dim);text-transform:uppercase;letter-spacing:.08em}
+.system-summary-note{margin-top:10px;font-size:12px;color:var(--text-dim)}
+.section-stack{display:grid;gap:16px}
+@keyframes pulseGlow{from{transform:translateX(-50%) scale(1)}to{transform:translateX(-50%) scale(1.12)}}
+@media(max-width:980px){.dashboard-grid{grid-template-columns:1fr}.battery-hero{grid-template-columns:1fr}.battery-visual{order:-1}.flash-hero-layout{grid-template-columns:1fr}.flash-visual{order:-1}}
+@media(max-width:760px){body{padding:0 10px 106px}header{grid-template-columns:1fr;margin-left:-10px;margin-right:-10px;border-radius:0 0 22px 22px}.battery-badge{grid-column:1;grid-row:auto;justify-self:start;margin-left:44px}.tabs{position:fixed;left:10px;right:10px;bottom:10px;top:auto;z-index:85;padding:8px 8px 10px;border-radius:24px;overflow:visible;background:rgba(9,14,24,.88);border:1px solid rgba(148,163,184,.18);box-shadow:0 18px 50px rgba(0,0,0,.35)}.tab{min-width:0;flex-direction:column;gap:4px;padding:9px 6px;font-size:11px;border-radius:16px}.tab .tab-ico{font-size:18px}.toolbar{grid-template-columns:1fr 1fr}.toolbar #search{grid-column:1/-1}.toolbar button{width:100%}.face-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}.checkbox-grid{grid-template-columns:repeat(auto-fill,minmax(145px,1fr))}.row{flex-direction:column;align-items:stretch}.range-row{align-items:stretch;flex-direction:column;gap:6px}.range-row .value{text-align:left}.card{border-radius:20px;padding:15px}.compact-grid{grid-template-columns:1fr 1fr}.wifi-visual{min-height:290px}.wifi-title{font-size:26px}.wifi-hints{gap:6px}.battery-arc{width:256px;height:164px}.battery-big{font-size:36px}.battery-arc-center{width:62%;bottom:-8px;padding:10px 10px 10px}.flash-arc{width:190px;height:118px}.flash-big{font-size:28px}}
+@media(max-width:420px){.toolbar{grid-template-columns:1fr}.face-grid{grid-template-columns:1fr 1fr}.face-actions{flex-direction:column}.card h2{font-size:16px}.compact-grid{grid-template-columns:1fr}.wifi-title{font-size:23px}.wifi-visual{padding:16px}.wifi-signal{width:190px;height:140px}.wifi-signal .arc.a4{width:184px;height:92px}.battery-arc{width:224px;height:140px}.battery-big{font-size:34px}.battery-arc-center{width:70%}.flash-arc{width:176px;height:110px}.flash-big{font-size:28px}}
+</style>
+</head>
+<body>
+<div class="app-shell">
+<header class="app-header">
+  <h1 id="device-title">Mochi</h1>
+  <p>Animation, sleep, battery and Wi-Fi control panel</p>
+  <div class="battery-badge" id="battery-badge" title="GPIO0 battery measurement">
+    <span>🔋 Battery</span><span id="battery-text">--%</span>
+    <span class="mini-bar"><span class="mini-fill" id="battery-mini-fill"></span></span>
+    <span id="battery-voltage">--.--V</span>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab active" data-tab="faces"><span class="tab-ico">◫</span><span>Faces</span></button>
+  <button class="tab" data-tab="anim"><span class="tab-ico">✦</span><span>Animation</span></button>
+  <button class="tab" data-tab="wifi"><span class="tab-ico">⌁</span><span>WiFi</span></button>
+  <button class="tab" data-tab="system"><span class="tab-ico">◔</span><span>System</span></button>
+</div>
+
+<!-- YUZLER -->
+<div class="panel active" id="panel-faces">
+  <div class="card">
+    <h2>Face Gallery</h2>
+    <div class="toolbar">
+      <input type="text" class="input" id="search" placeholder="Search faces...">
+      <select class="input" id="category-filter" style="max-width:180px">
+        <option value="all">All categories</option>
+        <option value="idle">Idle</option>
+        <option value="event">Event</option>
+        <option value="reaction">Reaction</option>
+        <option value="sleep">Sleep</option>
+        <option value="cute">Cute</option>
+        <option value="uncategorized">Uncategorized</option>
+      </select>
+      <select class="input" id="usage-filter" style="max-width:210px">
+        <option value="all">All usages</option>
+        <option value="used">Used</option>
+        <option value="unused">Unused</option>
+        <option value="default">Active / Default</option>
+        <option value="idle">Idle animations</option>
+        <option value="random">Random Event</option>
+        <option value="opening">Opening Event</option>
+        <option value="poke">Poke</option>
+        <option value="petting">Petting</option>
+        <option value="deep">Deep petting</option>
+        <option value="sleep">Sleep animations</option>
+      </select>
+      <button class="btn" id="btn-upload">Upload Faces</button>
+      <button class="btn btn-danger" id="btn-delete-all">Delete All</button>
+    </div>
+    <input type="file" id="file-input" multiple accept=".bin" style="display:none">
+    <div class="upload-report" id="upload-report"></div>
+    <div class="face-grid" id="face-grid"></div>
+  </div>
+</div>
+
+<!-- ANIMASYON -->
+<div class="panel" id="panel-anim">
+  <div class="card">
+    <h2>Idle Animations</h2>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">The active face in the Faces tab is the main/default face. These animations play in between as short, random glances or reactions.</p>
+    <div class="checkbox-grid" id="idle-grid"></div>
+    <p style="color:var(--text-dim);font-size:11px;margin-top:6px">Tick the faces to use as idle animations. You can edit loops/seconds for the selected ones below.</p>
+    <div id="idle-list" style="margin-top:10px"></div>
+    <div class="mini-row" style="margin-top:10px;align-items:center;flex-wrap:wrap">
+      <span style="color:var(--text-dim);font-size:12px">Idle interval:</span>
+      <input type="number" class="input" id="idle-event-min" min="1" max="120" placeholder="Min s" style="max-width:90px">
+      <input type="number" class="input" id="idle-event-max" min="1" max="120" placeholder="Max s" style="max-width:90px">
+      <button class="btn btn-secondary" id="btn-save-idle-time">Save Interval</button>
+    </div>
+    <p style="color:var(--text-dim);font-size:11px;margin-top:6px">While the default face plays, a random idle animation from the list starts each time this interval passes. Random Events do not start while an idle animation is playing.</p>
+    <div class="mini-row" style="justify-content:space-between;align-items:center">
+      <span id="idle-save-status" style="color:var(--text-dim);font-size:12px">Idle animations saved</span>
+      <button class="btn btn-secondary" id="btn-save-idle">Save Idle Animations</button>
+    </div>
+  </div>
+  
+  <div class="card">
+    <h2>Poke Reactions</h2><button class="btn btn-sm btn-secondary btn-test" data-kind="poke">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random one plays on a quick tap</p>
+    <div class="checkbox-grid" id="poke-grid"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Petting Reactions</h2><button class="btn btn-sm btn-secondary btn-test" data-kind="petting">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random one plays on a long press</p>
+    <div class="checkbox-grid" id="petting-grid"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Deep Petting Reactions</h2><button class="btn btn-sm btn-secondary btn-test" data-kind="deep">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">Plays when petted for more than 3 seconds (if empty, normal petting continues)</p>
+    <div class="checkbox-grid" id="deep-petting-grid"></div>
+  </div>
+
+  <div class="card">
+    <h2>Opening Event</h2><button class="btn btn-sm btn-secondary btn-test" data-kind="opening">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random selected face plays at startup. If empty, an animated "Hello there!" is shown.</p>
+    <div class="checkbox-grid" id="opening-event-grid"></div>
+  </div>
+
+  <div class="card">
+    <h2>Random Event</h2><button class="btn btn-sm btn-secondary btn-test" data-kind="random">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">While the default/active face plays, a random selected face plays now and then. This is not the same as <b>idle animations</b>: idle animations cycle continuously; a random event is a rare, one-shot surprise. Random events do not trigger while an idle animation is playing. The min-max range below is the time between two random events.</p>
+    <div class="row">
+      <input type="number" class="input" id="random-min" min="5" max="120" placeholder="Min seconds">
+      <input type="number" class="input" id="random-max" min="5" max="120" placeholder="Max seconds">
+      <button class="btn btn-secondary" id="btn-save-random-time">Save Interval</button>
+    </div>
+    <div class="checkbox-grid" id="random-event-grid"></div>
+  </div>
+  
+  <div class="card">
+    <h2>Sleep / Wake Animations</h2>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">Pick the animations to play when going to sleep and waking up. One of the selected ones plays at random, for its own full length.</p>
+    <div style="margin-top:14px">
+      <div class="mini-row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <div class="field-label">Sleep animations</div>
+          <p style="color:var(--text-dim);font-size:11px;margin-top:4px">A random selected one plays when going to sleep. If empty, the screen just turns off.</p>
+        </div>
+        <button class="btn btn-sm btn-secondary btn-test" data-kind="sleep-enter">Test</button>
+      </div>
+      <div class="checkbox-grid" id="sleep-enter-grid"></div>
+    </div>
+    <div style="margin-top:18px">
+      <div class="mini-row" style="justify-content:space-between;align-items:center;margin-bottom:8px">
+        <div>
+          <div class="field-label">Wake animations</div>
+          <p style="color:var(--text-dim);font-size:11px;margin-top:4px">A random selected one plays when touched. If empty, it goes straight back to the default face.</p>
+        </div>
+        <button class="btn btn-sm btn-secondary btn-test" data-kind="sleep-wake">Test</button>
+      </div>
+      <div class="checkbox-grid" id="sleep-wake-grid"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Touch Calibration</h2>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:10px">
+      These settings control how touches on the TTP223 sensor are interpreted. Defaults: Petting 200 ms, Deep petting 3000 ms, Debounce 35 ms.
+    </p>
+    <div class="row">
+      <input type="number" class="input" id="long-press-ms" min="80" max="1500" placeholder="Petting ms">
+      <input type="number" class="input" id="deep-petting-ms" min="500" max="10000" placeholder="Deep petting ms">
+      <input type="number" class="input" id="touch-debounce-ms" min="0" max="300" placeholder="Debounce ms">
+      <button class="btn btn-secondary" id="btn-save-touch">Save</button>
+    </div>
+    <div style="margin-top:10px;color:var(--text-dim);font-size:11px;line-height:1.55">
+      <div><b style="color:var(--text)">Petting ms:</b> A touch longer than this counts as petting. Lower it to trigger more easily; raise it to catch fewer short touches.</div>
+      <div><b style="color:var(--text)">Deep petting ms:</b> If your finger stays on the sensor this long, the deep petting animation starts. Example: 3000 = 3 seconds.</div>
+      <div><b style="color:var(--text)">Debounce ms:</b> Stops the TTP223 from counting one touch several times due to bounce/noise. If touches count double, try 50-70 ms.</div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Speed</h2>
+    <div class="range-row">
+      <label>Overall speed</label>
+      <input type="range" id="speed-mult" min="0.3" max="3" step="0.1" value="1">
+      <span class="value" id="speed-mult-val">1.0x</span>
+    </div>
+    <p style="color:var(--text-dim);font-size:11px">Affects the playback speed of all faces. 1.0 normal, 0.5 half speed, 2.0 double speed.</p>
+  </div>
+
+  <!-- A-1: İVMEÖLÇER TEPKİLERİ (kategoriler) -->
+  <div class="card">
+    <h2>🪶 Soft Shake Reactions</h2><button class="btn btn-sm btn-secondary" onclick="accelTest('soft_shake','softShakeReactions')">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random one plays when the device is shaken gently (3s cooldown)</p>
+    <div class="checkbox-grid" id="accel-soft-grid" data-catkey="softShakeReactions"></div>
+  </div>
+
+  <div class="card">
+    <h2>💥 Hard Shake Reactions</h2><button class="btn btn-sm btn-secondary" onclick="accelTest('hard_shake','hardShakeReactions')">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random one plays on a hard shake or hit — also wakes from sleep (5s cooldown)</p>
+    <div class="checkbox-grid" id="accel-hard-grid" data-catkey="hardShakeReactions"></div>
+  </div>
+
+  <div class="card">
+    <h2>🚗 Acceleration Reactions</h2><button class="btn btn-sm btn-secondary" onclick="accelTest('acceleration','accelerationReactions')">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random one plays on sudden acceleration (car/elevator) (8s cooldown)</p>
+    <div class="checkbox-grid" id="accel-accel-grid" data-catkey="accelerationReactions"></div>
+  </div>
+
+  <div class="card">
+    <h2>⬇️ Fall Reactions</h2><button class="btn btn-sm btn-secondary" onclick="accelTest('freefall','freefallReactions')">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random one plays when free-fall is detected (8s cooldown)</p>
+    <div class="checkbox-grid" id="accel-fall-grid" data-catkey="freefallReactions"></div>
+  </div>
+
+  <div class="card">
+    <h2>🔄 Tilt Reactions</h2><button class="btn btn-sm btn-secondary" onclick="accelTest('orientation','orientationReactions')">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random one plays when orientation changes (4s cooldown)</p>
+    <div class="checkbox-grid" id="accel-orient-grid" data-catkey="orientationReactions"></div>
+  </div>
+
+  <div class="card">
+    <h2>👋 Pick-up Reactions</h2><button class="btn btn-sm btn-secondary" onclick="accelTest('pickup','pickupReactions')">Test</button>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">A random one plays after long stillness → movement → tilt (10s cooldown)</p>
+    <div class="checkbox-grid" id="accel-pickup-grid" data-catkey="pickupReactions"></div>
+  </div>
+
+  <div class="card">
+    <p style="color:var(--text-dim);font-size:11px;margin:0">Sensitivity thresholds are in the System tab; this button saves the thresholds and the selections here together. You don't need to save to test — Test plays one of the currently ticked animations.</p>
+  </div>
+
+  <!-- Birlesik kaydet bari: tum tepki/event listeleri + ivmeolcer secim/esikleri.
+       Sticky: kullanici asagi kaydirdikca ekranin altina yapisik kalir. -->
+  <div style="position:sticky;bottom:8px;z-index:5;background:rgba(13,18,32,.96);backdrop-filter:blur(8px);border:1px solid var(--border);border-radius:14px;padding:10px 14px;margin-top:14px">
+    <div class="mini-row" style="justify-content:space-between;align-items:center;margin:0">
+      <span id="anim-events-save-status" style="color:var(--text-dim);font-size:13px">Reaction/event lists saved</span>
+      <button class="btn btn-success" id="btn-save-anim-events" disabled>Save Reaction/Event Lists</button>
+    </div>
+  </div>
+</div>
+
+<!-- WIFI -->
+<div class="panel" id="panel-wifi">
+  <div class="card wifi-hero-card">
+    <div class="wifi-visual idle" id="wifi-visual-card">
+      <div class="wifi-head">
+        <span class="wifi-chip" id="wifi-visual-chip">WiFi Setup</span>
+        <span class="wifi-step" id="wifi-visual-step">Ready</span>
+      </div>
+      <div class="wifi-stage">
+        <div class="wifi-signal">
+          <span class="arc a1"></span>
+          <span class="arc a2"></span>
+          <span class="arc a3"></span>
+          <span class="arc a4"></span>
+          <span class="dot"></span>
+        </div>
+      </div>
+      <div class="wifi-copy">
+        <div class="wifi-title" id="wifi-visual-title">WiFi Welcome</div>
+        <div class="wifi-sub" id="wifi-visual-sub">Scan for networks to connect your device to WiFi</div>
+        <div class="wifi-network" id="wifi-visual-ssid">Ready</div>
+        <div class="wifi-hints">
+          <span id="wifi-visual-ip">IP: -</span>
+          <span id="wifi-visual-ap">AP: -</span>
+          <span id="wifi-visual-clients">Clients: -</span>
+        </div>
+        <div class="hero-progress slim">
+          <div class="storage-wrap"><div class="storage-bar" id="wifi-visual-progress" style="width:14%"></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="card">
+      <h2>Current Status</h2>
+      <div class="stat-grid" id="wifi-status">
+        <div class="stat"><div class="label">AP</div><div class="value" id="ap-name">-</div></div>
+        <div class="stat"><div class="label">Clients</div><div class="value" id="ap-clients">-</div></div>
+        <div class="stat"><div class="label">STA</div><div class="value" id="sta-status">-</div></div>
+        <div class="stat"><div class="label">IP</div><div class="value" id="ip-addr" style="font-size:14px">-</div></div>
+      </div>
+      <div class="pill-row">
+        <span class="soft-pill"><strong>Auto</strong> <span id="wifi-auto-pill">Off</span></span>
+        <span class="soft-pill"><strong>Target SSID</strong> <span id="wifi-target-ssid">-</span></span>
+      </div>
+    </div>
+
+    <div class="section-stack">
+      <div class="card">
+        <h2>AP Timeout</h2>
+        <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">WiFi/AP turns off by itself when no device has been connected and the web panel hasn't been used for this long.</p>
+        <div class="row">
+          <input type="number" class="input" id="wifi-timeout-min" min="1" max="120" placeholder="Minutes">
+          <button class="btn btn-secondary" id="btn-save-wifi-timeout">Save</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>WiFi Tap Combo</h2>
+        <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">Default: 10 taps within 7 seconds.</p>
+        <div class="row">
+          <input type="number" class="input" id="wifi-tap-count" min="2" max="25" placeholder="Tap count">
+          <input type="number" class="input" id="wifi-tap-window-sec" min="1" max="30" placeholder="Seconds">
+          <button class="btn btn-secondary" id="btn-save-wifi-tap">Save</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>WiFi Password</h2>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">The password of Mochi's own WiFi network. A new password takes effect the next time WiFi turns on. <span id="ap-pass-status"></span></p>
+    <div class="row">
+      <input type="password" class="input" id="ap-pass-new" placeholder="New password (8-63 characters)" maxlength="63" autocomplete="new-password">
+      <input type="password" class="input" id="ap-pass-confirm" placeholder="New password (again)" maxlength="63" autocomplete="new-password">
+    </div>
+    <div class="row">
+      <button class="btn btn-secondary" id="btn-ap-pass-reset">Reset to Default</button>
+      <button class="btn btn-success" id="btn-ap-pass-save">Save Password</button>
+    </div>
+    <p style="color:var(--text-dim);font-size:11px;margin-top:6px">Forgot it? Connect Mochi to a computer over USB, open a serial monitor at 115200 baud and turn WiFi on. The password is printed there.</p>
+  </div>
+
+  <div class="card">
+    <h2>Connect to Home WiFi</h2>
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <p class="hero-note">Scan for networks, pick one from the list or type the SSID manually.</p>
+      <button class="btn btn-secondary" id="btn-scan">Scan Networks</button>
+    </div>
+    <p style="color:var(--warning);font-size:11px;margin-top:6px">⚠️ While scanning, the WiFi radio switches to scan mode for a few seconds (3-5 s); the UI may slow down or freeze briefly. This is normal.</p>
+    <div id="wifi-list" class="wifi-list-grid" style="margin-top:12px"></div>
+    <div class="row" style="margin-top:14px">
+      <input type="text" class="input" id="wifi-ssid" placeholder="SSID (manual)">
+      <input type="password" class="input" id="wifi-password" placeholder="Password">
+    </div>
+    <div class="row">
+      <label style="display:flex;align-items:center;gap:8px;flex:none">
+        <input type="checkbox" id="wifi-auto"> Auto connect
+      </label>
+      <button class="btn btn-success" id="btn-wifi-connect">Connect and Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- SISTEM -->
+<div class="panel" id="panel-system">
+  <div class="card battery-hero-card">
+    <h2>Battery and Storage</h2>
+    <div class="battery-hero">
+      <div class="battery-visual">
+        <div class="battery-arc" id="battery-hero-arc" style="--pct:0;--gauge:#facc15">
+          <div class="battery-arc-center">
+            <div class="battery-eyebrow">Battery</div>
+            <div class="battery-big" id="battery-hero-percent">--%</div>
+          </div>
+        </div>
+      </div>
+      <div class="battery-side">
+        <div class="compact-grid">
+          <div class="metric-card"><span>Voltage</span><strong id="battery-hero-voltage">--.--V</strong></div>
+          <div class="metric-card"><span>Charging</span><strong id="battery-hero-charge">-</strong></div>
+          <div class="metric-card"><span>Battery Status</span><strong id="battery-hero-status">Waiting for reading</strong></div>
+          <div class="metric-card"><span>Brightness</span><strong id="brightness-display">50%</strong></div>
+        </div>
+        <div class="glass-panel">
+          <div class="flash-hero-layout">
+            <div class="flash-visual">
+              <div class="flash-arc" id="flash-hero-arc" style="--pct:0;--gauge:#34d399">
+                <div class="flash-arc-center">
+                  <div class="battery-eyebrow">Flash</div>
+                  <div class="flash-big" id="fs-hero-percent">--%</div>
+                </div>
+              </div>
+            </div>
+            <div class="flash-meta">
+              <div class="hero-progress-label"><span>Flash Usage</span><span id="fs-hero-label">-</span></div>
+              <div class="storage-wrap"><div class="storage-bar" id="fs-bar-hero"></div></div>
+              <div class="flash-kv"><span>Used Space</span><strong id="fs-used-hero">-</strong></div>
+              <div class="flash-status-note" id="fs-hero-status">Waiting for storage</div>
+              <div class="pill-row">
+                <span class="soft-pill"><strong>Uptime</strong> <span id="uptime-hero">-</span></span>
+                <span class="soft-pill"><strong>RAM</strong> <span id="free-ram-hero">-</span></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="dashboard-grid">
+    <div class="card">
+      <h2>System Summary</h2>
+      <div class="stat-grid" id="sys-stats">
+        <div class="stat"><div class="label">Uptime</div><div class="value" id="uptime">-</div></div>
+        <div class="stat"><div class="label">Free RAM</div><div class="value" id="free-ram">-</div></div>
+        <div class="stat"><div class="label">Storage Status</div><div class="value" id="fs-used">-</div><div class="storage-wrap"><div class="storage-bar" id="fs-bar"></div></div></div>
+        <div class="stat"><div class="label">Battery Status</div><div class="value" id="sys-battery">-</div><div class="storage-wrap"><div class="storage-bar" id="battery-bar"></div></div></div>
+      </div>
+      <p class="system-summary-note">Exact battery and flash values are in the cards above; this is just a quick status summary.</p>
+    </div>
+
+    <div class="card">
+      <h2>OLED Brightness</h2>
+      <div class="range-row">
+        <label>Brightness</label>
+        <input type="range" id="display-brightness-percent" min="5" max="100" step="1" value="50">
+        <span class="value" id="display-brightness-val">50%</span>
+      </div>
+      <p class="hero-note">50% is recommended for OLED lifespan.</p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Sleep Mode</h2>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">With no touch for the chosen time, the screen turns off, WiFi/AP shuts down and idle/random/event animations stop.</p>
+    <div class="row">
+      <label style="display:flex;align-items:center;gap:8px;flex:none">
+        <input type="checkbox" id="sleep-enabled"> Sleep mode enabled
+      </label>
+      <input type="number" class="input" id="sleep-timeout-min" min="1" max="720" placeholder="Minutes" style="max-width:120px">
+    </div>
+    <div class="row" style="margin-top:10px">
+      <select class="input" id="sleep-mode">
+        <option value="0">Light sleep - wakes quickly</option>
+        <option value="1">Deep sleep - lowest power</option>
+        <option value="2">Hybrid - light first, then deep</option>
+      </select>
+      <input type="number" class="input" id="sleep-deep-after-min" min="1" max="720" placeholder="Deep after (min)">
+    </div>
+    <p style="color:var(--text-dim);font-size:11px;margin-top:4px">In hybrid mode it enters light sleep first, then deep sleep if not touched. Sleep animations are chosen in the Animation tab.</p>
+    <div class="mini-row" style="justify-content:space-between;align-items:center;margin-top:10px">
+      <span style="color:var(--text-dim);font-size:12px">Animation choices are in the Animation tab</span>
+      <button class="btn btn-secondary" id="btn-save-sleep">Save Sleep Settings</button>
+    </div>
+  </div>
+  
+  <!-- A-1: İvmeölçer Tepkileri -->
+  <div class="card" id="accel-card">
+    <h2>🎯 Accelerometer
+      <span id="accel-hw-badge" style="margin-left:10px;font-size:11px;font-weight:800;letter-spacing:.5px;padding:3px 9px;border-radius:999px;background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#fcd34d;vertical-align:middle">Loading…</span>
+    </h2>
+    <p style="color:var(--text-dim);font-size:12px;margin-bottom:14px">MMA8452Q · SDA=GPIO20 · SCL=GPIO21 · INT1=GPIO2 · INT2=GPIO10</p>
+
+    <!-- Hassasiyet sliderları -->
+    <h3>Sensitivity</h3>
+    <div class="range-row"><label>Soft shake</label><input type="range" id="asl-soft" min="0.1" max="3.0" step="0.05" value="0.5" oninput="accelMarkDirty();$('#asl-soft-v').textContent=parseFloat(this.value).toFixed(2)+'g'"><span class="value" id="asl-soft-v">0.50g</span></div>
+    <div class="range-row"><label>Hard shake</label><input type="range" id="asl-hard" min="0.5" max="8.0" step="0.1" value="1.5" oninput="accelMarkDirty();$('#asl-hard-v').textContent=parseFloat(this.value).toFixed(1)+'g'"><span class="value" id="asl-hard-v">1.50g</span></div>
+    <div class="range-row"><label>Acceleration threshold</label><input type="range" id="asl-accel" min="0.1" max="5.0" step="0.05" value="0.8" oninput="accelMarkDirty();$('#asl-accel-v').textContent=parseFloat(this.value).toFixed(2)+'g'"><span class="value" id="asl-accel-v">0.80g</span></div>
+    <div class="range-row"><label>Free-fall duration</label><input type="range" id="asl-fall" min="50" max="1000" step="10" value="200" oninput="accelMarkDirty();$('#asl-fall-v').textContent=this.value+'ms'"><span class="value" id="asl-fall-v">200ms</span></div>
+    <div class="range-row"><label>Pick-up stillness</label><input type="range" id="asl-pickup" min="5" max="120" step="1" value="30" oninput="accelMarkDirty();$('#asl-pickup-v').textContent=this.value+'s'"><span class="value" id="asl-pickup-v">30s</span></div>
+
+    <!-- Canlı test -->
+    <div style="margin:12px 0 6px;display:flex;gap:8px;align-items:center">
+      <button class="btn btn-sm btn-secondary" onclick="accelLiveToggle()">▶ Live Sensor Test</button>
+      <span id="accel-live-lbl" style="font-size:11px;color:var(--text-dim)"></span>
+    </div>
+    <div id="accel-live-panel" style="display:none;background:rgba(8,13,24,.9);border:1px solid var(--border);border-radius:13px;padding:12px;font-size:12px;font-family:monospace;margin-bottom:12px">
+      <div style="display:flex;gap:18px;flex-wrap:wrap;margin-bottom:6px">
+        <span>X: <b id="lv-x">—</b></span>
+        <span>Y: <b id="lv-y">—</b></span>
+        <span>Z: <b id="lv-z">—</b></span>
+        <span>|g|: <b id="lv-m">—</b></span>
+        <span>Orientation: <b id="lv-o">—</b></span>
+        <span>Falling: <b id="lv-f">—</b></span>
+      </div>
+      <div style="color:var(--text-dim);font-size:11px">Cooldown → soft:<span id="lv-cd-s">✓</span> hard:<span id="lv-cd-h">✓</span> accel:<span id="lv-cd-a">✓</span> fall:<span id="lv-cd-f2">✓</span> orient:<span id="lv-cd-o">✓</span> pickup:<span id="lv-cd-p">✓</span></div>
+    </div>
+
+    <p style="color:var(--text-dim);font-size:11px;margin-top:10px">Reaction animations are chosen in the Animation tab. Threshold changes are saved with the 💾 save button there.</p>
+    <p style="color:var(--text-dim);font-size:11px;margin-top:8px">Threshold changes are saved with the "Save Reaction/Event Lists" button in the Animation tab.</p>
+  </div>
+
+
+  <div class="dashboard-grid">
+    <div class="card">
+      <h2>Battery Display Tap Combo</h2>
+      <p style="color:var(--text-dim);font-size:12px;margin-bottom:12px">The battery icon is hidden on the normal face. When this combo is detected, the battery percentage shows on the OLED for 5 seconds.</p>
+      <div class="row">
+        <input type="number" class="input" id="battery-tap-count" min="2" max="25" placeholder="Tap count">
+        <input type="number" class="input" id="battery-tap-window-sec" min="1" max="30" placeholder="Seconds">
+        <button class="btn btn-secondary" id="btn-save-battery-tap">Save</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <h2>Tools</h2>
+      <div class="row">
+        <button class="btn btn-secondary" id="btn-download-script">Download Python Script</button>
+        <button class="btn btn-secondary" id="btn-export-config">Download Config</button>
+        <button class="btn btn-secondary" id="btn-import-config">Upload Config</button>
+        <button class="btn btn-secondary" id="btn-sleep-test">Sleep Test (1 s)</button>
+        <button class="btn btn-secondary" id="btn-restart">Restart</button>
+      </div>
+      <input type="file" id="config-file-input" accept=".json,application/json" style="display:none">
+      <p style="color:var(--text-dim);font-size:11px;margin-top:12px">
+        Use the Python script to convert GIF files to .bin on your computer.
+        Then upload them from the face gallery.
+        <br>
+        <b>Sleep Test:</b> The device enters the configured sleep mode after 1 second (wake it with a TOUCH).
+        WiFi turns off, so the browser will disconnect.
+      </p>
+    </div>
+  </div>
+</div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal" id="confirm-modal">
+  <div class="modal-content">
+    <h2 id="modal-title">Confirm</h2>
+    <p id="modal-message" style="color:var(--text-dim)"></p>
+    <div class="modal-actions">
+      <button class="btn btn-secondary" id="modal-cancel">Cancel</button>
+      <button class="btn btn-danger" id="modal-ok">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const $ = (s, ctx = document) => ctx.querySelector(s);
+const $$ = (s, ctx = document) => Array.from(ctx.querySelectorAll(s));
+// S-1: HTML attribute & text-safe escape. innerHTML'e interpolate edilen tum
+// kullanici/cihaz kaynakli stringler (yuz adlari, kategori, SSID vs.) bundan
+// gecmeli. Sunucu tarafinda M-8 sanitizeFaceName yuz adlarini ASCII slug'a
+// kisitliyor ama eski cihazlardaki kalintilar veya komsu WiFi SSID'leri hala
+// XSS payload icerebilir. Saldirgan SSID'sini `<script>` ile koysa bile bu
+// helper attribute (`"`) ve text (`<`,`>`) baglamlarinin ikisinde de guvenli.
+const esc = function(s) {
+  return String(s == null ? '' : s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+};
+
+let state = {
+  faces: [],
+  config: {},
+  activeFace: '',
+  fsError: '',
+  previewTimers: {},
+  previewQueue: [],
+  previewLoading: false,
+  previewGeneration: 0,
+  idleDirty: false,
+  animEventsDirty: false,  // K-2: Tepki/event grid degisiklikleri save buton ile kaydedilir
+  ui: { wifiMode: 'idle' }
+};
+
+// === API ===
+const api = async function(path, opts = {}) {
+  try {
+    const r = await fetch(path, opts);
+    if(!r.ok) throw new Error('HTTP ' + r.status);
+    const ct = r.headers.get('content-type') || '';
+    if(ct.includes('json')) return await r.json();
+    return await r.text();
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+    throw e;
+  }
+}
+
+const toast = function(msg, type = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  setTimeout(() => t.className = 'toast', 2500);
+}
+
+const confirmModal = function(title, msg, onOk) {
+  $('#modal-title').textContent = title;
+  $('#modal-message').textContent = msg;
+  $('#confirm-modal').classList.add('show');
+  $('#modal-ok').onclick = () => {
+    $('#confirm-modal').classList.remove('show');
+    onOk();
+  };
+}
+$('#modal-cancel').onclick = () => $('#confirm-modal').classList.remove('show');
+
+// === WIFI KEEP-ALIVE ===
+const keepWifiAlive = function() {
+  // Bilerek api() kullanmiyoruz; ping hata verirse toast spam yapmasin.
+  fetch('/api/ping?ts=' + Date.now(), {cache: 'no-store'}).catch(() => {});
+}
+
+window.addEventListener('pageshow', keepWifiAlive);
+document.addEventListener('visibilitychange', () => { if(!document.hidden) keepWifiAlive(); });
+document.addEventListener('pointerdown', keepWifiAlive, {passive: true});
+
+// === TABS ===
+const tabsEl = $('.tabs');
+if(tabsEl) {
+  tabsEl.addEventListener('click', (e) => {
+    const tab = e.target.closest('.tab');
+    if(!tab) return;
+    e.preventDefault();
+    keepWifiAlive();
+    $$('.tab').forEach(t => t.classList.remove('active'));
+    $$('.panel').forEach(p => p.classList.remove('active'));
+    tab.classList.add('active');
+    const panel = $('#panel-' + tab.dataset.tab);
+    if(panel) panel.classList.add('active');
+    if(tab.dataset.tab === 'faces') renderFaces();
+    if(tab.dataset.tab === 'wifi' && typeof window.refreshWifi === 'function') {
+      window.refreshWifi().catch(e => console.error('refreshWifi', e));
+    }
+    if(tab.dataset.tab === 'system' && typeof window.refreshSystem === 'function') {
+      window.refreshSystem().catch(e => console.error('refreshSystem', e));
+    }
+  });
+}
+
+// === FACE GALLERY ===
+const loadFaces = async function() {
+  const data = await api('/api/faces');
+  state.fsError = data.error || '';
+  state.faces = data.faces || [];
+  state.activeFace = data.active || '';
+  renderFaces();
+  updateAnimUI();
+}
+
+const faceListNames = function(list) {
+  return (list || []).map(x => typeof x === 'string' ? x : (x && x.name)).filter(Boolean);
+}
+
+const faceUsageTags = function(name) {
+  const c = state.config || {};
+  const tags = [];
+  if(name === state.activeFace || name === c.currentFace || name === c.defaultFace) tags.push({key:'default', label:'DEFAULT'});
+  if(faceListNames(c.idleList).includes(name)) tags.push({key:'idle', label:'IDLE'});
+  if((c.randomEvents || []).includes(name)) tags.push({key:'random', label:'RANDOM'});
+  if((c.openingEvents || []).includes(name)) tags.push({key:'opening', label:'OPENING'});
+  if((c.pokeReactions || []).includes(name)) tags.push({key:'poke', label:'POKE'});
+  if((c.pettingReactions || []).includes(name)) tags.push({key:'petting', label:'PET'});
+  if((c.deepPettingReactions || []).includes(name)) tags.push({key:'deep', label:'DEEP'});
+  if((c.sleepEnterEvents || []).includes(name) || c.sleepEnterFace === name) tags.push({key:'sleep', label:'SLEEP IN'});
+  if((c.sleepWakeEvents || []).includes(name) || c.sleepWakeFace === name) tags.push({key:'sleep', label:'WAKE'});
+  return tags;
+}
+
+const matchesUsageFilter = function(name, filter) {
+  if(!filter || filter === 'all') return true;
+  const tags = faceUsageTags(name).map(t => t.key);
+  if(filter === 'used') return tags.length > 0;
+  if(filter === 'unused') return tags.length === 0;
+  return tags.includes(filter);
+}
+
+const usageBadgesHtml = function(name) {
+  const tags = faceUsageTags(name);
+  if(tags.length === 0) return '<div class="usage-badges"><span class="usage-badge unused">UNUSED</span></div>';
+  // S-1: tag.key/.label kod-icinde tanimli sabitler ama her ihtimale karsi escape.
+  return '<div class="usage-badges">' + tags.map(t => '<span class="usage-badge ' + esc(t.key) + '">' + esc(t.label) + '</span>').join('') + '</div>';
+}
+
+const renderFaces = function() {
+  // U-10: Eski preview timer'lari her seferinde temizle. Eskiden sadece
+  // loadPreview icinde aynı name icin clearInterval yapiliyordu; renderFaces
+  // tum kart DOM'unu yeniden ureten yer, eski canvas'lar artik DOM'da yokken
+  // timer'lari çalışmaya devam ediyordu (memory leak + arka planda draw).
+  if(state.previewTimers) {
+    Object.values(state.previewTimers).forEach(t => {
+      clearInterval(t);
+      clearTimeout(t);
+    });
+    state.previewTimers = {};
+  }
+  // Eski render'a ait kuyruktaki preview isteklerini gecersiz kil. In-flight
+  // en fazla bir istek kalir; yeni DOM icin cift istek firtinasi olusmaz.
+  state.previewGeneration++;
+  state.previewQueue = [];
+
+  const search = ($('#search') && $('#search').value.toLowerCase()) || '';
+  const catFilter = ($('#category-filter') && $('#category-filter').value) || 'all';
+  const usageFilter = ($('#usage-filter') && $('#usage-filter').value) || 'all';
+  const grid = $('#face-grid');
+  const cats = state.config.faceCategories || {};
+  const filtered = state.faces.filter(f => {
+    const cat = cats[f.name] || f.category || 'uncategorized';
+    return f.name.toLowerCase().includes(search) &&
+      (catFilter === 'all' || cat === catFilter) &&
+      matchesUsageFilter(f.name, usageFilter);
+  });
+  
+  if(state.fsError) {
+    grid.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><p>LittleFS not ready.<br>' + state.fsError + '</p></div>';
+    return;
+  }
+
+  if(filtered.length === 0) {
+    grid.innerHTML = '<div class="empty-state"><div class="icon">📁</div><p>No faces match this filter.</p></div>';
+    return;
+  }
+  
+  grid.innerHTML = filtered.map(f => {
+    const cat = (state.config.faceCategories || {})[f.name] || f.category || 'uncategorized';
+    // S-1: f.name & cat innerHTML'e basiliyor; M-8 sanitize sonrasi yeni isimler guvenli ama
+    // mevcut LittleFS'te eski karakterler kalabilir + cat free-form. esc() ile koru.
+    const safeName = esc(f.name);
+    const safeCat = esc(cat);
+    return `
+    <div class="face-card ${f.name === state.activeFace ? 'active' : ''}" data-name="${safeName}">
+      <canvas class="face-preview" data-name="${safeName}" width="128" height="64"></canvas>
+      <div class="face-name">${safeName}</div>
+      <div class="face-info">${f.frames|0}f · ${(f.size/1024).toFixed(1)}KB · ${esc(f.format || 'MOC2')}</div>
+      ${usageBadgesHtml(f.name)}
+      <div class="category-chip">${safeCat}</div>
+      <select class="input face-category" data-name="${safeName}" style="margin-top:6px;padding:6px;font-size:11px">
+        ${['uncategorized','idle','event','reaction','sleep','cute'].map(c => `<option value="${esc(c)}" ${(cat === c) ? 'selected' : ''}>${esc(c)}</option>`).join('')}
+      </select>
+      <div class="face-actions">
+        <button class="btn btn-sm btn-active" data-name="${safeName}">Default/Active</button>
+        <button class="btn btn-sm btn-secondary btn-delete" data-name="${safeName}">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+  
+  $$('.btn-active').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    setActive(b.dataset.name);
+  });
+  $$('.btn-delete').forEach(b => b.onclick = (e) => {
+    e.stopPropagation();
+    deleteFace(b.dataset.name);
+  });
+  $$('.face-category').forEach(sel => sel.onchange = async (e) => {
+    e.stopPropagation();
+    if(!state.config.faceCategories) state.config.faceCategories = {};
+    state.config.faceCategories[sel.dataset.name] = sel.value;
+    await saveConfig();
+    renderFaces();
+  });
+  
+  const generation = state.previewGeneration;
+  $$('.face-preview').forEach(canvas => {
+    state.previewQueue.push({canvas, generation});
+  });
+  pumpPreviewQueue();
+}
+
+// ESP32 WebServer tek istemciyi sirayla isler. Tarayicinin tum canvas'lari ayni
+// anda fetch etmesi yerine preview'leri tek tek gondererek cihaz loop'unu, OLED'i
+// ve heap'i rahat birakiyoruz.
+const pumpPreviewQueue = async function() {
+  if(state.previewLoading) return;
+  state.previewLoading = true;
+  try {
+    while(state.previewQueue.length) {
+      const item = state.previewQueue.shift();
+      if(!item || item.generation !== state.previewGeneration || !item.canvas.isConnected) continue;
+      await loadPreview(item.canvas, item.generation);
+      // ESP32 tek istemciyi sirayla isliyor. Preview'ler arasinda kisa nefes
+      // birakmak animasyon/touch loop'unu ve TCP cevaplarini daha stabil tutar.
+      await new Promise(resolve => setTimeout(resolve, 20));
+    }
+  } finally {
+    state.previewLoading = false;
+    if(state.previewQueue.length) pumpPreviewQueue();
+  }
+}
+
+const loadPreview = async function(canvas, generation) {
+  const name = canvas.dataset.name;
+  try {
+    const r = await fetch('/api/preview?name=' + encodeURIComponent(name));
+    if(!r.ok) return;
+    const buf = await r.arrayBuffer();
+    if(generation !== state.previewGeneration || !canvas.isConnected) return;
+    const data = new Uint8Array(buf);
+    if(data.length < 8 || data[0] !== 0x4D) return;  // 'M'
+
+    // Endpoint artik dosyayi OLDUGU GIBI gonderiyor (ornekleme yok).
+    // MOC2: [8B header][frame: 1 delay + 1024 raw]...
+    // MOC3: [8B header][frame: 1 delay + 2B compLen + RLE(count,value) delta]...
+    // Decode burada (tarayicida) yapilir — cihaz sadece dosya okur.
+    const isMoc3 = data[3] === 0x33;  // '3'
+    const frameCount = data[4] || 1;
+    const bytesPerRow = data[5];
+    const w = bytesPerRow * 8;
+    const h = data[6];
+    const frameBytes = bytesPerRow * h;
+
+    const frames = [];  // {delay, bits}
+    if(!isMoc3) {
+      const frameSize = 1 + frameBytes;
+      for(let i = 0; i < frameCount; i++) {
+        const off = 8 + i * frameSize;
+        if(off + frameSize > data.length) break;
+        frames.push({delay: data[off], bits: data.subarray(off + 1, off + 1 + frameBytes)});
+      }
+    } else {
+      let pos = 8;
+      let prev = new Uint8Array(frameBytes);
+      for(let i = 0; i < frameCount; i++) {
+        if(pos + 3 > data.length) break;
+        const delay = data[pos];
+        const compLen = data[pos + 1] | (data[pos + 2] << 8);
+        pos += 3;
+        if(pos + compLen > data.length) break;
+        const out = new Uint8Array(frameBytes);
+        let written = 0, consumed = 0;
+        while(consumed + 2 <= compLen && written < frameBytes) {
+          const cnt = data[pos + consumed];
+          const val = data[pos + consumed + 1];
+          consumed += 2;
+          for(let k = 0; k < cnt && written < frameBytes; k++) {
+            out[written] = prev[written] ^ val;  // delta: prev XOR value
+            written++;
+          }
+        }
+        pos += compLen;
+        if(written !== frameBytes) break;
+        frames.push({delay: delay, bits: out});
+        prev = out;
+      }
+    }
+    if(!frames.length) return;
+
+    const ctx = canvas.getContext('2d');
+    canvas.width = w;
+    canvas.height = h;
+
+    if(state.previewTimers[name]) {
+      clearInterval(state.previewTimers[name]);
+      clearTimeout(state.previewTimers[name]);
+    }
+
+    let frame = 0;
+    const drawAndSchedule = () => {
+      const bits = frames[frame].bits;
+      const img = ctx.createImageData(w, h);
+      for(let y = 0; y < h; y++) {
+        for(let x = 0; x < w; x++) {
+          const v = ((bits[y * bytesPerRow + (x >> 3)] >> (x & 7)) & 1) ? 255 : 0;
+          const i4 = (y * w + x) * 4;
+          img.data[i4] = v; img.data[i4+1] = v; img.data[i4+2] = v; img.data[i4+3] = 255;
+        }
+      }
+      ctx.putImageData(img, 0, 0);
+
+      if(frames.length > 1) {
+        frame = (frame + 1) % frames.length;
+        // Firmware ile ayni zamanlama: delay byte x10 = ms (getFrameDelay).
+        let delay = frames[frame].delay > 0 ? frames[frame].delay * 10 : 120;
+        if(delay < 30) delay = 30;
+        state.previewTimers[name] = setTimeout(drawAndSchedule, delay);
+      }
+    };
+    drawAndSchedule();
+  } catch(e) { /* ignore */ }
+}
+
+const setActive = async function(name) {
+  await api('/api/setactive?name=' + encodeURIComponent(name), {method: 'POST'});
+  state.activeFace = name;
+  state.config.currentFace = name;
+  state.config.defaultFace = name;
+  renderFaces();
+  toast('Active/default face: ' + name, 'success');
+}
+
+const deleteFace = function(name) {
+  confirmModal('Delete', `Are you sure you want to delete "${name}"?`, async () => {
+    await api('/api/delete?name=' + encodeURIComponent(name), {method: 'POST'});
+    toast('Deleted', 'success');
+    await loadFaces();
+  });
+}
+
+$('#search').oninput = renderFaces;
+if($('#category-filter')) $('#category-filter').onchange = renderFaces;
+if($('#usage-filter')) $('#usage-filter').onchange = renderFaces;
+
+$('#btn-upload').onclick = () => $('#file-input').click();
+$('#file-input').onchange = async (e) => {
+  const files = Array.from(e.target.files);
+  if(files.length === 0) return;
+  
+  toast('Uploading...', '');
+  let okCount = 0;
+  const rows = [];
+  for(const file of files) {
+    const fd = new FormData();
+    fd.append('file', file);
+    try {
+      const res = await api('/api/upload', {method: 'POST', body: fd});
+      okCount++;
+      // S-1: file.name kullanicinin secfigi dosya adi; teorik olarak XSS payload olabilir.
+      rows.push(`✅ ${esc(file.name)} ${(file.size/1024).toFixed(1)}KB`);
+    } catch(err) { rows.push(`❌ ${esc(file.name)} failed`); }
+  }
+  $('#upload-report').innerHTML = rows.join('<br>');
+  toast(`${okCount}/${files.length} uploaded`, okCount === files.length ? 'success' : 'error');
+  await loadFaces();
+};
+
+$('#btn-delete-all').onclick = () => {
+  confirmModal('Delete All', 
+    'ALL faces will be deleted. The device will fall back to the default face. Continue?',
+    async () => {
+      await api('/api/deleteall', {method: 'POST'});
+      toast('All deleted', 'success');
+      await loadFaces();
+    });
+};
+
+// === ANIM TAB ===
+const idleName = function(item) { return typeof item === 'string' ? item : item.name; }
+const normalizeIdleList = function() { state.config.idleList = (state.config.idleList || []).map(x => typeof x === 'string' ? {name:x, loops:1, seconds:0} : x).filter(x => x && x.name); }
+const updateIdleSaveStatus = function() {
+  const el = $('#idle-save-status');
+  const btn = $('#btn-save-idle');
+  if(!el || !btn) return;
+  el.textContent = state.idleDirty ? 'Idle changes not saved' : 'Idle animations saved';
+  el.style.color = state.idleDirty ? 'var(--warning)' : 'var(--text-dim)';
+  btn.disabled = !state.idleDirty;
+}
+const markIdleDirty = function() {
+  state.idleDirty = true;
+  updateIdleSaveStatus();
+}
+const saveIdleConfig = async function() {
+  normalizeIdleList();
+  await saveConfig();
+  state.idleDirty = false;
+  updateIdleSaveStatus();
+  toast('Idle animations saved', 'success');
+}
+
+// K-2: Animasyon sekmesindeki reaction/event grid'leri (poke, petting, deep,
+// opening, random, sleep enter/wake) icin dirty flag + manuel kaydet pattern.
+// Eskiden her checkbox tiklamasinda saveConfig() cagriliyordu, hizli bircok
+// secimde flash wear'a yol aciyor + her tikla 50-100ms latency. Simdi tikla
+// dirty=true, kullanici "Kaydet" butonuna basinca tek POST atiyor.
+const updateAnimEventsSaveStatus = function() {
+  const el = $('#anim-events-save-status');
+  const btn = $('#btn-save-anim-events');
+  if(!el || !btn) return;
+  el.textContent = state.animEventsDirty ? 'Reaction/event changes not saved' : 'Reaction/event lists saved';
+  el.style.color = state.animEventsDirty ? 'var(--warning)' : 'var(--text-dim)';
+  btn.disabled = !state.animEventsDirty;
+}
+const markAnimEventsDirty = function() {
+  state.animEventsDirty = true;
+  updateAnimEventsSaveStatus();
+}
+const saveAnimEventsConfig = async function() {
+  await saveConfig(true);  // ivmeolcer secim + esikleri de bu butonla kaydedilir
+  state.animEventsDirty = false;
+  accelDirty = false;
+  updateAnimEventsSaveStatus();
+  toast('Reaction/event lists saved', 'success');
+}
+
+const populateFaceSelect = function(selectId, selectedValue, emptyLabel) {
+  const sel = $('#' + selectId);
+  if(!sel) return;
+  const selected = selectedValue || '';
+  // S-1: f.name attribute & text baglaminda escape.
+  sel.innerHTML = '<option value="">' + esc(emptyLabel) + '</option>' + state.faces.map(f =>
+    '<option value="' + esc(f.name) + '" ' + (f.name === selected ? 'selected' : '') + '>' + esc(f.name) + '</option>'
+  ).join('');
+}
+
+const updateAnimUI = function() {
+  // Default yuz ayari artik Yuzler sekmesindeki Aktif secimidir.
+  // Animasyon sekmesinde ayri default secici yok.
+
+  // Idle list (sortable)
+  const idleList = $('#idle-list');
+  normalizeIdleList();
+  if(!state.config.idleList || state.config.idleList.length === 0) {
+    idleList.innerHTML = '<div class="empty-state" style="padding:20px"><p>Idle list is empty. Add faces below.</p></div>';
+  } else {
+    idleList.innerHTML = state.config.idleList.map((item, i) => {
+      const name = typeof item === 'string' ? item : item.name;
+      const loops = typeof item === 'string' ? 1 : (item.loops || 1);
+      const seconds = typeof item === 'string' ? 0 : (item.seconds || 0);
+      // S-1: name escape
+      return `
+      <div class="list-item" draggable="true" data-idx="${i}">
+        <span class="handle">⋮⋮</span>
+        <span class="name">${esc(name)}</span>
+        <input class="input idle-loops" data-idx="${i}" type="number" min="1" max="5" value="${loops|0}" title="Loops" style="max-width:70px">
+        <input class="input idle-seconds" data-idx="${i}" type="number" min="0" max="60" value="${seconds|0}" title="Seconds, 0=auto" style="max-width:80px">
+        <button class="btn btn-sm btn-danger btn-remove-idle" data-idx="${i}">×</button>
+      </div>`;
+    }).join('');
+  }
+  
+  // Idle checkbox grid
+  const idleGrid = $('#idle-grid');
+  const selectedIdle = new Set((state.config.idleList || []).map(idleName));
+  if(idleGrid) {
+    // S-1: f.name escape
+    idleGrid.innerHTML = state.faces.map(f => `
+      <div class="check-item ${selectedIdle.has(f.name) ? 'checked' : ''}" data-name="${esc(f.name)}">
+        <span class="check-icon"></span>
+        <span>${esc(f.name)}</span>
+      </div>
+    `).join('');
+    $$('#idle-grid .check-item').forEach(item => {
+      item.onclick = () => {
+        const name = item.dataset.name;
+        normalizeIdleList();
+        const exists = (state.config.idleList || []).some(x => idleName(x) === name);
+        if(exists) {
+          state.config.idleList = state.config.idleList.filter(x => idleName(x) !== name);
+        } else {
+          state.config.idleList.push({name, loops:1, seconds:0});
+        }
+        markIdleDirty();
+        updateAnimUI();
+      };
+    });
+  }
+  
+  if(!state.config.sleepEnterEvents) state.config.sleepEnterEvents = state.config.sleepEnterFace ? [state.config.sleepEnterFace] : [];
+  if(!state.config.sleepWakeEvents) state.config.sleepWakeEvents = state.config.sleepWakeFace ? [state.config.sleepWakeFace] : [];
+
+  // Tepki / event / uyku animasyon gridleri
+  ['poke','petting','deep-petting','opening-event','random-event','sleep-enter','sleep-wake'].forEach(kind => {
+    const key = kind === 'deep-petting' ? 'deepPettingReactions' : 
+                kind === 'opening-event' ? 'openingEvents' :
+                kind === 'random-event' ? 'randomEvents' :
+                kind === 'sleep-enter' ? 'sleepEnterEvents' :
+                kind === 'sleep-wake' ? 'sleepWakeEvents' :
+                kind === 'poke' ? 'pokeReactions' : 'pettingReactions';
+    const grid = $('#' + kind + '-grid');
+    if(!grid) return;
+    const selected = new Set(state.config[key] || []);
+    
+    grid.innerHTML = state.faces.map(f => `
+      <div class="check-item ${selected.has(f.name) ? 'checked' : ''}" data-kind="${esc(key)}" data-name="${esc(f.name)}">
+        <span class="check-icon"></span>
+        <span>${esc(f.name)}</span>
+      </div>
+    `).join('');
+    
+    $$('#' + kind + '-grid .check-item').forEach(item => {
+      item.onclick = () => {
+        item.classList.toggle('checked');
+        const name = item.dataset.name;
+        const k = item.dataset.kind;
+        if(!state.config[k]) state.config[k] = [];
+        if(item.classList.contains('checked')) {
+          if(!state.config[k].includes(name)) state.config[k].push(name);
+        } else {
+          state.config[k] = state.config[k].filter(n => n !== name);
+        }
+        if(k === 'sleepEnterEvents') state.config.sleepEnterFace = state.config.sleepEnterEvents[0] || '';
+        if(k === 'sleepWakeEvents') state.config.sleepWakeFace = state.config.sleepWakeEvents[0] || '';
+        // K-2: Eski davranis: her tıklamada saveConfig() (flash wear + lag).
+        // Yeni: dirty flag, kullanici "Kaydet" butonuna basana kadar yazma.
+        markAnimEventsDirty();
+      };
+    });
+  });
+  
+  // Idle remove
+  $$('.btn-remove-idle').forEach(b => b.onclick = () => {
+    const idx = parseInt(b.dataset.idx);
+    state.config.idleList.splice(idx, 1);
+    markIdleDirty();
+    updateAnimUI();
+  });
+  $$('.idle-loops').forEach(inp => inp.onchange = () => {
+    const idx = parseInt(inp.dataset.idx);
+    state.config.idleList[idx].loops = Math.max(1, Math.min(5, parseInt(inp.value || '1')));
+    inp.value = state.config.idleList[idx].loops;
+    markIdleDirty();
+  });
+  $$('.idle-seconds').forEach(inp => inp.onchange = () => {
+    const idx = parseInt(inp.dataset.idx);
+    state.config.idleList[idx].seconds = Math.max(0, Math.min(60, parseInt(inp.value || '0')));
+    inp.value = state.config.idleList[idx].seconds;
+    markIdleDirty();
+  });
+  
+  // Idle drag-drop
+  setupIdleDragDrop();
+  updateIdleSaveStatus();
+  // K-2: Tepki/event save status'unu ilk render'da senkronize et (yeni config
+  // load edildiyse dirty=false varsayilani).
+  updateAnimEventsSaveStatus();
+  
+  // Idle ara animasyon bekleme araligi
+  if($('#idle-event-min')) $('#idle-event-min').value = state.config.idleEventMinSec || 5;
+  if($('#idle-event-max')) $('#idle-event-max').value = state.config.idleEventMaxSec || 14;
+
+  // Random event sureleri
+  if($('#random-min')) $('#random-min').value = state.config.randomEventMinSec || 15;
+  if($('#random-max')) $('#random-max').value = state.config.randomEventMaxSec || 20;
+
+  // WiFi config alanlari
+  if($('#wifi-timeout-min')) $('#wifi-timeout-min').value = state.config.wifiTimeoutMinutes || 15;
+  if($('#wifi-tap-count')) $('#wifi-tap-count').value = state.config.wifiTapCount || 10;
+  if($('#wifi-tap-window-sec')) $('#wifi-tap-window-sec').value = state.config.wifiTapWindowSec || 7;
+  if($('#battery-tap-count')) $('#battery-tap-count').value = state.config.batteryTapCount || 5;
+  if($('#battery-tap-window-sec')) $('#battery-tap-window-sec').value = state.config.batteryTapWindowSec || 5;
+  if($('#wifi-auto')) $('#wifi-auto').checked = !!state.config.wifiAutoConnect;
+  if($('#wifi-ssid') && state.config.wifiSSID) $('#wifi-ssid').value = state.config.wifiSSID;
+  
+  // Touch kalibrasyonu
+  if($('#long-press-ms')) $('#long-press-ms').value = state.config.longPressMs || 200;
+  if($('#deep-petting-ms')) $('#deep-petting-ms').value = state.config.deepPettingMs || 3000;
+  if($('#touch-debounce-ms')) $('#touch-debounce-ms').value = state.config.touchDebounceMs || 35;
+
+  // OLED parlakligi
+  const brightness = state.config.displayBrightnessPercent || 50;
+  if($('#display-brightness-percent')) $('#display-brightness-percent').value = brightness;
+  if($('#display-brightness-val')) $('#display-brightness-val').textContent = brightness + '%';
+  if($('#brightness-display')) $('#brightness-display').textContent = brightness + '%';
+
+  // Uyku modu
+  if($('#sleep-enabled')) $('#sleep-enabled').checked = state.config.sleepEnabled !== false;
+  if($('#sleep-timeout-min')) $('#sleep-timeout-min').value = state.config.sleepTimeoutMinutes || 60;
+  if($('#sleep-mode')) $('#sleep-mode').value = String(state.config.sleepMode !== undefined ? state.config.sleepMode : 0);
+  if($('#sleep-deep-after-min')) $('#sleep-deep-after-min').value = state.config.sleepDeepAfterMinutes || 15;
+
+  const testGridForKind = function(kind) {
+    return {
+      'poke':'poke-grid',
+      'petting':'petting-grid',
+      'deep':'deep-petting-grid',
+      'opening':'opening-event-grid',
+      'random':'random-event-grid',
+      'sleep-enter':'sleep-enter-grid',
+      'sleep-wake':'sleep-wake-grid'
+    }[kind] || '';
+  }
+  const checkedNameForTestKind = function(kind) {
+    const gridId = testGridForKind(kind);
+    const grid = gridId ? document.getElementById(gridId) : null;
+    if(!grid) return '';
+    const checked = Array.from(grid.querySelectorAll('.check-item.checked')).map(e => e.dataset.name).filter(Boolean);
+    if(!checked.length) return '';
+    return checked[Math.floor(Math.random() * checked.length)];
+  }
+  $$('.btn-test').forEach(b => b.onclick = async () => {
+    const kind = b.dataset.kind || 'active';
+    let url = '/api/test?kind=' + encodeURIComponent(kind);
+    // Kaydetmeden test: o an gridde isaretli animasyon varsa adini cihaza gonder.
+    // Isaretli yoksa cihazdaki kayitli listeye fallback yapar.
+    const name = checkedNameForTestKind(kind);
+    if(name) url += '&name=' + encodeURIComponent(name);
+    try {
+      const r = await fetch(url, {method:'POST'});
+      if(r.ok) toast('Playing test' + (name ? ': ' + name : ''), 'success');
+      else {
+        const msg = await r.text().catch(() => '');
+        toast(msg || 'This category is empty or the file is missing', 'error');
+      }
+    } catch(e) { toast('Connection error', 'error'); }
+  });
+
+  updateSleepModeUI();
+
+  // Hiz
+  $('#speed-mult').value = state.config.speedMultiplier || 1;
+  $('#speed-mult-val').textContent = (state.config.speedMultiplier || 1).toFixed(1) + 'x';
+}
+
+const updateSleepModeUI = function() {
+  const modeEl = $('#sleep-mode');
+  const deepEl = $('#sleep-deep-after-min');
+  if(!modeEl || !deepEl) return;
+  const isHybrid = String(modeEl.value) === '2';
+  deepEl.disabled = !isHybrid;
+  deepEl.style.opacity = isHybrid ? '1' : '0.45';
+  deepEl.title = isHybrid ? 'Time before switching from light to deep sleep in hybrid mode' : 'Only used in hybrid mode';
+}
+
+const setupIdleDragDrop = function() {
+  let dragSrc = null;
+  $$('#idle-list .list-item').forEach(item => {
+    item.ondragstart = (e) => {
+      dragSrc = item;
+      item.classList.add('dragging');
+    };
+    item.ondragend = () => {
+      item.classList.remove('dragging');
+      $$('#idle-list .list-item').forEach(i => i.classList.remove('drag-over'));
+    };
+    item.ondragover = (e) => {
+      e.preventDefault();
+      if(dragSrc !== item) item.classList.add('drag-over');
+    };
+    item.ondragleave = () => item.classList.remove('drag-over');
+    item.ondrop = (e) => {
+      e.preventDefault();
+      if(dragSrc !== item) {
+        const srcIdx = parseInt(dragSrc.dataset.idx);
+        const dstIdx = parseInt(item.dataset.idx);
+        const arr = state.config.idleList;
+        const moved = arr.splice(srcIdx, 1)[0];
+        arr.splice(dstIdx, 0, moved);
+        markIdleDirty();
+        updateAnimUI();
+      }
+    };
+  });
+}
+
+$('#btn-save-idle').onclick = saveIdleConfig;
+// K-2: Tepki/event toplu kaydet butonu.
+if($('#btn-save-anim-events')) {
+  $('#btn-save-anim-events').onclick = saveAnimEventsConfig;
+}
+
+$('#btn-save-idle-time').onclick = async () => {
+  const minSec = Math.max(1, Math.min(120, parseInt($('#idle-event-min').value || '5')));
+  const maxSec = Math.max(minSec, Math.min(120, parseInt($('#idle-event-max').value || '14')));
+  state.config.idleEventMinSec = minSec;
+  state.config.idleEventMaxSec = maxSec;
+  $('#idle-event-min').value = minSec;
+  $('#idle-event-max').value = maxSec;
+  await saveConfig();
+  toast('Idle interval saved', 'success');
+};
+
+$('#speed-mult').oninput = (e) => {
+  const v = parseFloat(e.target.value);
+  $('#speed-mult-val').textContent = v.toFixed(1) + 'x';
+  state.config.speedMultiplier = v;
+};
+$('#speed-mult').onchange = () => saveConfig();
+
+if($('#display-brightness-percent')) {
+  $('#display-brightness-percent').oninput = (e) => {
+    const v = Math.max(5, Math.min(100, parseInt(e.target.value || '50')));
+    $('#display-brightness-val').textContent = v + '%';
+    if($('#brightness-display')) $('#brightness-display').textContent = v + '%';
+    state.config.displayBrightnessPercent = v;
+  };
+  $('#display-brightness-percent').onchange = async () => {
+    await saveConfig();
+    toast('OLED brightness saved', 'success');
+  };
+}
+
+if($('#sleep-mode')) $('#sleep-mode').onchange = updateSleepModeUI;
+
+if($('#btn-save-sleep')) {
+  $('#btn-save-sleep').onclick = async () => {
+    state.config.sleepEnabled = $('#sleep-enabled') ? $('#sleep-enabled').checked : true;
+    state.config.sleepTimeoutMinutes = Math.max(1, Math.min(720, parseInt($('#sleep-timeout-min').value || '60')));
+    state.config.sleepMode = Math.max(0, Math.min(2, parseInt($('#sleep-mode') ? $('#sleep-mode').value : '0')));
+    state.config.sleepDeepAfterMinutes = Math.max(1, Math.min(720, parseInt($('#sleep-deep-after-min') ? $('#sleep-deep-after-min').value : '15')));
+    state.config.sleepEnterEvents = state.config.sleepEnterEvents || [];
+    state.config.sleepWakeEvents = state.config.sleepWakeEvents || [];
+    state.config.sleepEnterFace = state.config.sleepEnterEvents[0] || '';
+    state.config.sleepWakeFace = state.config.sleepWakeEvents[0] || '';
+    $('#sleep-timeout-min').value = state.config.sleepTimeoutMinutes;
+    if($('#sleep-mode')) $('#sleep-mode').value = String(state.config.sleepMode);
+    if($('#sleep-deep-after-min')) $('#sleep-deep-after-min').value = state.config.sleepDeepAfterMinutes;
+    updateSleepModeUI();
+    await saveConfig();
+    toast('Sleep settings saved', 'success');
+  };
+}
+
+$('#btn-save-random-time').onclick = async () => {
+  const minSec = Math.max(5, Math.min(120, parseInt($('#random-min').value || '15')));
+  const maxSec = Math.max(minSec, Math.min(120, parseInt($('#random-max').value || '20')));
+  state.config.randomEventMinSec = minSec;
+  state.config.randomEventMaxSec = maxSec;
+  $('#random-min').value = minSec;
+  $('#random-max').value = maxSec;
+  await saveConfig();
+  toast('Random event interval saved', 'success');
+};
+
+$('#btn-save-wifi-timeout').onclick = async () => {
+  const minutes = Math.max(1, Math.min(120, parseInt($('#wifi-timeout-min').value || '15')));
+  state.config.wifiTimeoutMinutes = minutes;
+  $('#wifi-timeout-min').value = minutes;
+  await saveConfig();
+  toast('WiFi timeout saved', 'success');
+};
+
+$('#btn-save-wifi-tap').onclick = async () => {
+  const taps = Math.max(2, Math.min(25, parseInt($('#wifi-tap-count').value || '10')));
+  const win = Math.max(1, Math.min(30, parseInt($('#wifi-tap-window-sec').value || '7')));
+  state.config.wifiTapCount = taps;
+  state.config.wifiTapWindowSec = win;
+  $('#wifi-tap-count').value = taps;
+  $('#wifi-tap-window-sec').value = win;
+  await saveConfig();
+  toast('WiFi combo saved', 'success');
+};
+
+$('#btn-save-battery-tap').onclick = async () => {
+  const taps = Math.max(2, Math.min(25, parseInt($('#battery-tap-count').value || '5')));
+  const win = Math.max(1, Math.min(30, parseInt($('#battery-tap-window-sec').value || '5')));
+  state.config.batteryTapCount = taps;
+  state.config.batteryTapWindowSec = win;
+  $('#battery-tap-count').value = taps;
+  $('#battery-tap-window-sec').value = win;
+  await saveConfig();
+  toast('Battery combo saved', 'success');
+};
+
+$('#btn-save-touch').onclick = async () => {
+  state.config.longPressMs = Math.max(80, Math.min(1500, parseInt($('#long-press-ms').value || '200')));
+  state.config.deepPettingMs = Math.max(500, Math.min(10000, parseInt($('#deep-petting-ms').value || '3000')));
+  state.config.touchDebounceMs = Math.max(0, Math.min(300, parseInt($('#touch-debounce-ms').value || '35')));
+  $('#long-press-ms').value = state.config.longPressMs;
+  $('#deep-petting-ms').value = state.config.deepPettingMs;
+  $('#touch-debounce-ms').value = state.config.touchDebounceMs;
+  await saveConfig();
+  toast('Touch settings saved', 'success');
+};
+
+const saveConfig = async function(includeAccel) {
+  // KRITIK: state.config bayat kopya olabilir; icindeki eski accel objesini
+  // korumesizce POST etmek guncel secimleri EZIYORDU. accel yalnizca
+  // includeAccel=true iken ve O AN UI'dan taze insa edilerek gonderilir
+  // (birlesik Tepki/Event kaydet butonu bu yolu kullanir).
+  const body = Object.assign({}, state.config);
+  if (includeAccel && typeof accelBuildPayload === 'function') {
+    body.accel = accelBuildPayload(body.accel || {});
+    state.config.accel = body.accel;  // bayat kopyayi da senkronla
+  } else {
+    delete body.accel;
+  }
+  await api('/api/config', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(body)
+  });
+}
+
+const loadConfig = async function() {
+  state.config = await api('/api/config');
+  state.idleDirty = false;
+  updateAnimUI();
+  if(state.faces.length) renderFaces();
+}
+
+// === WIFI ===
+// UI-FIX: WiFi/Sistem sekmeleri window.refresh* fonksiyonlarini kullanir; ikinci script refreshSystem'i sarar.
+const setWifiVisual = function(mode = 'idle', payload = {}) {
+  state.ui = state.ui || {};
+  state.ui.wifiMode = mode;
+  const card = $('#wifi-visual-card');
+  if(card) card.className = 'wifi-visual ' + mode;
+
+  const titles = {
+    idle: 'WiFi Welcome',
+    scanning: 'Scanning...',
+    select: 'Select Network',
+    connecting: 'Connecting',
+    connected: 'Connected!',
+    error: 'Connection Failed'
+  };
+  const subs = {
+    idle: 'Scan for networks to connect your device to WiFi',
+    scanning: 'Looking for nearby WiFi networks',
+    select: 'Pick a network from the list or type an SSID',
+    connecting: 'Authenticating...',
+    connected: 'Connected and saved',
+    error: 'Check the password or the network'
+  };
+  const progress = {idle: 14, scanning: 42, select: 72, connecting: 60, connected: 100, error: 100};
+  const chip = {idle:'WiFi Setup', scanning:'Scanning', select:'Select', connecting:'Connecting', connected:'Connected', error:'Error'};
+  const step = {idle:'Ready', scanning:'Step 1/3', select:'Step 2/3', connecting:'Step 3/3', connected:'Done', error:'Try Again'};
+
+  if($('#wifi-visual-chip')) $('#wifi-visual-chip').textContent = chip[mode] || chip.idle;
+  if($('#wifi-visual-step')) $('#wifi-visual-step').textContent = step[mode] || step.idle;
+  if($('#wifi-visual-title')) $('#wifi-visual-title').textContent = payload.title || titles[mode] || titles.idle;
+  if($('#wifi-visual-sub')) $('#wifi-visual-sub').textContent = payload.sub || subs[mode] || subs.idle;
+  if($('#wifi-visual-ssid')) $('#wifi-visual-ssid').textContent = payload.ssid || (state.config && state.config.wifiSSID ? state.config.wifiSSID : 'Ready');
+  if($('#wifi-visual-ip')) $('#wifi-visual-ip').textContent = 'IP: ' + (payload.ip || '-');
+  if($('#wifi-visual-ap')) $('#wifi-visual-ap').textContent = 'AP: ' + (payload.ap || '-');
+  if($('#wifi-visual-clients')) $('#wifi-visual-clients').textContent = 'Clients: ' + (payload.clients != null ? payload.clients : '-');
+  if($('#wifi-visual-progress')) $('#wifi-visual-progress').style.width = (payload.progress != null ? payload.progress : (progress[mode] || 14)) + '%';
+};
+
+const refreshWifi = window.refreshWifi = async function() {
+  const data = await api('/api/wifi/status');
+  $('#ap-name').textContent = data.apSSID || '-';
+  $('#ap-clients').textContent = String(data.apClients !== undefined ? data.apClients : '-');
+  $('#sta-status').textContent = data.staConnected ? 'Connected' : 'None';
+  $('#ip-addr').textContent = data.ip || '-';
+  if($('#ap-pass-status')) $('#ap-pass-status').textContent = data.apPasswordCustom ? 'A custom password is set.' : 'The default password is in use; changing it is recommended.';
+  if($('#wifi-auto-pill')) $('#wifi-auto-pill').textContent = state.config && state.config.wifiAutoConnect ? 'On' : 'Off';
+  if($('#wifi-target-ssid')) $('#wifi-target-ssid').textContent = state.config && state.config.wifiSSID ? state.config.wifiSSID : '-';
+
+  const mode = data.staConnected ? 'connected' : ((state.ui && state.ui.wifiMode && state.ui.wifiMode !== 'connected') ? state.ui.wifiMode : 'idle');
+  setWifiVisual(data.staConnected ? 'connected' : mode, {
+    ssid: (state.config && state.config.wifiSSID) || data.apSSID || 'Ready',
+    ip: data.ip || '-',
+    ap: data.apSSID || '-',
+    clients: data.apClients,
+    sub: data.staConnected ? 'Connected and saved automatically' : undefined
+  });
+}
+
+$('#btn-scan').onclick = async () => {
+  $('#btn-scan').textContent = 'Scanning...';
+  $('#btn-scan').disabled = true;
+  setWifiVisual('scanning', {ssid: 'Searching...', sub: 'Listing nearby WiFi networks'});
+  try {
+    const data = await api('/api/wifi/scan');
+    const list = $('#wifi-list');
+    if(!data.networks || data.networks.length === 0) {
+      list.innerHTML = '<div class="wifi-empty">No networks found</div>';
+      setWifiVisual('error', {ssid: 'No networks found', sub: 'Try scanning again in a moment'});
+    } else {
+      // S-1: SSID komsu router'lardan geliyor; saldirgan SSID = '<script>...<\/script>'
+      // ile XSS denese bile esc() sayesinde guvenli (hem text hem data-* attribute baglami).
+      list.innerHTML = data.networks.map(n => `
+        <div class="list-item" data-ssid="${esc(n.ssid)}">
+          <span class="name">${esc(n.ssid)}</span>
+          <span style="color:var(--text-dim);font-size:11px">${(n.rssi|0)} dBm ${n.secure ? '🔒' : 'Open'}</span>
+        </div>
+      `).join('');
+      setWifiVisual('select', {ssid: data.networks[0].ssid, sub: 'Tap a network to fill in the SSID'});
+      $$('#wifi-list .list-item').forEach(i => {
+        i.onclick = () => {
+          $('#wifi-ssid').value = i.dataset.ssid;
+          setWifiVisual('select', {ssid: i.dataset.ssid, sub: 'SSID selected, enter the password and connect'});
+        };
+      });
+    }
+  } catch(err) {
+    setWifiVisual('error', {ssid: 'Scan error', sub: err.message});
+  } finally {
+    $('#btn-scan').textContent = 'Scan Networks';
+    $('#btn-scan').disabled = false;
+  }
+};
+
+$('#btn-wifi-connect').onclick = async () => {
+  const ssid = $('#wifi-ssid').value;
+  const password = $('#wifi-password').value;
+  const auto = $('#wifi-auto').checked;
+  if(!ssid) return toast('SSID cannot be empty', 'error');
+  
+  $('#btn-wifi-connect').innerHTML = '<span class="spinner"></span>';
+  setWifiVisual('connecting', {ssid, sub: 'Saving credentials to the device'});
+  try {
+    await api('/api/wifi/connect', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ssid, password, auto})
+    });
+    state.config.wifiSSID = ssid;
+    state.config.wifiAutoConnect = auto;
+    toast('Saved', 'success');
+    setTimeout(refreshWifi, 2000);
+  } catch(err) {
+    setWifiVisual('error', {ssid, sub: 'Could not connect. Check the password or the network'});
+  } finally {
+    $('#btn-wifi-connect').textContent = 'Connect and Save';
+  }
+};
+
+// AP parolasi: cihaz parolayi geri gondermez, sadece ozel parola ayarli mi bilgisini verir.
+const setApPassword = async function(password) {
+  try {
+    await api('/api/wifi/appassword', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({password})
+    });
+  } catch(err) { return; }
+  $('#ap-pass-new').value = '';
+  $('#ap-pass-confirm').value = '';
+  toast(password ? 'Password saved. WiFi will use it the next time it turns on.' : 'Default password restored. WiFi will use it the next time it turns on.', 'success');
+  refreshWifi().catch(() => {});
+};
+
+$('#btn-ap-pass-save').onclick = () => {
+  const pw = $('#ap-pass-new').value;
+  if(pw.length < 8 || pw.length > 63 || !/^[\x20-\x7e]+$/.test(pw)) return toast('Password must be 8-63 characters, ASCII only', 'error');
+  if(pw !== $('#ap-pass-confirm').value) return toast('Passwords do not match', 'error');
+  setApPassword(pw);
+};
+
+$('#btn-ap-pass-reset').onclick = () => {
+  confirmModal('Default Password', 'The WiFi password will go back to the default built into the firmware. Continue?', () => setApPassword(''));
+};
+
+// === BATTERY ===
+const updateBatteryUI = function(data) {
+  const pct = Number(data.percent ?? data.batteryPercent ?? -1);
+  const voltage = Number(data.voltage ?? data.batteryVoltage ?? 0);
+  const charging = !!(data.charging || data.batteryCharging);
+  const valid = pct >= 0 && voltage > 0;
+  const clamped = Math.max(0, Math.min(100, valid ? pct : 0));
+  let gauge = '#facc15';
+  if(clamped <= 15) gauge = '#ef4444';
+  else if(clamped <= 35) gauge = '#f59e0b';
+  else if(clamped >= 80) gauge = '#4ade80';
+
+  if($('#battery-text')) $('#battery-text').textContent = valid ? Math.round(clamped) + '%' : '--%';
+  if($('#battery-voltage')) $('#battery-voltage').textContent = valid ? voltage.toFixed(2) + 'V' + (charging ? ' / charging' : '') : '--.--V';
+  if($('#battery-mini-fill')) $('#battery-mini-fill').style.width = clamped + '%';
+  const badge = $('#battery-badge');
+  if(badge) {
+    badge.classList.toggle('low', valid && clamped <= 30);
+    badge.classList.toggle('critical', valid && clamped <= 15);
+  }
+  if($('#sys-battery')) $('#sys-battery').textContent = valid ? (charging ? 'Charging' : (clamped <= 20 ? 'Low' : (clamped >= 80 ? 'High' : 'Normal'))) : 'No reading';
+  if($('#battery-bar')) $('#battery-bar').style.width = clamped + '%';
+
+  if($('#battery-hero-percent')) $('#battery-hero-percent').textContent = valid ? Math.round(clamped) + '%' : '--%';
+  if($('#battery-hero-voltage')) $('#battery-hero-voltage').textContent = valid ? voltage.toFixed(2) + 'V' : '--.--V';
+  if($('#battery-hero-charge')) $('#battery-hero-charge').textContent = charging ? 'Charging' : (valid ? 'Normal' : '-');
+  if($('#battery-hero-status')) $('#battery-hero-status').textContent = valid ? (charging ? 'Charging now' : (clamped <= 20 ? 'Battery low' : 'Battery OK')) : 'Waiting for reading';
+  const heroArc = $('#battery-hero-arc');
+  if(heroArc) {
+    heroArc.style.setProperty('--pct', String(clamped));
+    heroArc.style.setProperty('--gauge', gauge);
+  }
+}
+
+const refreshBattery = async function() {
+  try {
+    const data = await api('/api/battery');
+    updateBatteryUI(data);
+  } catch(e) { /* api() zaten toast basar */ }
+}
+
+// === SYSTEM ===
+const refreshSystem = window.refreshSystem = async function() {
+  const data = await api('/api/sys');
+  const uptimeText = formatUptime(data.uptime);
+  const ramText = (data.freeRam/1024).toFixed(0) + ' KB';
+  if($('#uptime')) $('#uptime').textContent = uptimeText;
+  if($('#free-ram')) $('#free-ram').textContent = ramText;
+  if($('#uptime-hero')) $('#uptime-hero').textContent = uptimeText;
+  if($('#free-ram-hero')) $('#free-ram-hero').textContent = ramText;
+  updateBatteryUI(data);
+  if(!data.fsReady || !data.fsTotal) {
+    const fsText = data.fsStatus || 'LittleFS not ready';
+    if($('#fs-used')) $('#fs-used').textContent = fsText;
+    if($('#fs-used-hero')) $('#fs-used-hero').textContent = fsText;
+    if($('#fs-used-hero-mini')) $('#fs-used-hero-mini').textContent = fsText;
+    if($('#fs-hero-label')) $('#fs-hero-label').textContent = fsText;
+    if($('#fs-hero-percent')) $('#fs-hero-percent').textContent = '--%';
+    if($('#fs-hero-status')) $('#fs-hero-status').textContent = 'Storage not ready';
+    if($('#fs-bar')) $('#fs-bar').style.width = '0%';
+    if($('#fs-bar-hero')) $('#fs-bar-hero').style.width = '0%';
+    const flashHeroArc = $('#flash-hero-arc');
+    if(flashHeroArc) flashHeroArc.style.setProperty('--pct', '0');
+  } else {
+    const usedKb = (data.fsUsed/1024).toFixed(0);
+    const totalKb = (data.fsTotal/1024).toFixed(0);
+    const pct = Math.min(100, Math.round((data.fsUsed / data.fsTotal) * 100));
+    const fsText = usedKb + ' / ' + totalKb + ' KB (' + pct + '%)' + (data.fsFormattedThisBoot ? ' (formatted this boot)' : '');
+    if($('#fs-used')) $('#fs-used').textContent = data.fsFormattedThisBoot ? 'Just formatted' : (pct >= 90 ? 'Almost full' : (pct >= 75 ? 'High usage' : 'Plenty of space'));
+    if($('#fs-used-hero')) $('#fs-used-hero').textContent = usedKb + ' / ' + totalKb + ' KB';
+    if($('#fs-used-hero-mini')) $('#fs-used-hero-mini').textContent = pct + '%';
+    if($('#fs-hero-label')) $('#fs-hero-label').textContent = usedKb + ' / ' + totalKb + ' KB';
+    if($('#fs-hero-percent')) $('#fs-hero-percent').textContent = pct + '%';
+    if($('#fs-hero-status')) $('#fs-hero-status').textContent = data.fsFormattedThisBoot ? 'Formatted this boot' : (pct >= 90 ? 'Almost full' : (pct >= 75 ? 'High usage' : 'Plenty of space'));
+    if($('#fs-bar')) $('#fs-bar').style.width = pct + '%';
+    if($('#fs-bar-hero')) $('#fs-bar-hero').style.width = pct + '%';
+    const flashHeroArc = $('#flash-hero-arc');
+    if(flashHeroArc) flashHeroArc.style.setProperty('--pct', String(pct));
+  }
+}
+window.refreshSystem = refreshSystem;
+
+const formatUptime = function(s) {
+  if(s < 60) return s + 's';
+  if(s < 3600) return Math.floor(s/60) + 'm';
+  return Math.floor(s/3600) + 'h ' + Math.floor((s%3600)/60) + 'm';
+}
+
+$('#btn-download-script').onclick = () => {
+  window.location = '/api/script';
+};
+
+$('#btn-export-config').onclick = () => {
+  window.location = '/api/config/export';
+};
+
+$('#btn-import-config').onclick = () => $('#config-file-input').click();
+$('#config-file-input').onchange = async (e) => {
+  const file = e.target.files && e.target.files[0];
+  if(!file) return;
+  try {
+    const txt = await file.text();
+    const imported = JSON.parse(txt);
+    await api('/api/config', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify(imported)
+    });
+    toast('Config uploaded', 'success');
+    await loadConfig();
+    await loadFaces();
+  } catch(err) {
+    toast('Config upload failed: ' + err.message, 'error');
+  } finally {
+    e.target.value = '';
+  }
+};
+
+$('#btn-restart').onclick = () => {
+  confirmModal('Restart', 'The device will restart. Are you sure?', async () => {
+    await api('/api/restart', {method: 'POST'});
+    toast('Restarting...', 'success');
+  });
+};
+
+// U-6: Sleep test - cihazi 1 saniye sonra uykuya gonder. WiFi kapanacagi icin
+// baglanti kesilir; toast'u modali kapanmadan bilgilendirir.
+if($('#btn-sleep-test')) {
+  $('#btn-sleep-test').onclick = () => {
+    confirmModal('Sleep Test', 'The device will go to sleep in 1 s. WiFi will turn off and the connection will drop. Wake it with a TOUCH. Continue?', async () => {
+      try {
+        await api('/api/sleeptest', {method: 'POST'});
+        toast('Going to sleep... connection will drop', 'success');
+      } catch(err) {
+        // WiFi kapanirken hata gelmesi normal, sessizce yut
+      }
+    });
+  };
+}
+
+// === Init ===
+(async () => {
+  // Cihaz adini al ve baslik/title'a koy
+  try {
+    const sys = await api('/api/sys');
+    if(sys.deviceName) {
+      $('#device-title').textContent = sys.deviceName;
+      document.title = sys.deviceName;
+    }
+    updateBatteryUI(sys);
+  } catch(e) { 
+    $('#device-title').textContent = 'Mochi';
+  }
+  
+  // Once hafif JSON isteklerini tamamen bitir, yuz preview'lerini en sona birak.
+  // Eski akista preview kuyrugu baslarken wifi/sys/battery istekleri de ayni anda
+  // aciliyor ve tek-client WebServer'i gereksiz yere kilitliyordu.
+  await loadConfig();
+  try { await refreshWifi(); } catch(e) {}
+  try { await refreshSystem(); } catch(e) {}
+  await loadFaces();
+
+  // Ilk yukleme tamamlandiktan sonra keep-alive ve periyodik pil sorgusunu baslat.
+  keepWifiAlive();
+  refreshBattery();
+  setInterval(keepWifiAlive, 5000);
+  setInterval(refreshBattery, 5000);
+})();
+</script>
+
+<script>
+// ═══════════════════════════════════════════════════════
+// A-1: İvmeölçer UI — Sistem sekmesi
+// ═══════════════════════════════════════════════════════
+const ACCEL_CATS = [
+  {key:'softShakeReactions',    grid:'accel-soft-grid',   test:'soft_shake'},
+  {key:'hardShakeReactions',    grid:'accel-hard-grid',   test:'hard_shake'},
+  {key:'accelerationReactions', grid:'accel-accel-grid',  test:'acceleration'},
+  {key:'freefallReactions',     grid:'accel-fall-grid',   test:'freefall'},
+  {key:'orientationReactions',  grid:'accel-orient-grid', test:'orientation'},
+  {key:'pickupReactions',       grid:'accel-pickup-grid', test:'pickup'},
+];
+const ACCEL_PL = {0:'Upright',1:'Upside down',2:'Right side',3:'Left side'};  // PL_STATUS LAPO bitleri
+
+let accelDirty = false;
+let accelLiveOn = false, accelLiveTmr = null;
+
+async function accelLoad() {
+  // Kaydedilmemis degisiklik varken yeniden render etme — sistem sekmesine
+  // her giriste refreshSystem accelLoad cagiriyor; render checkbox secimlerini
+  // sifirlayip kullanicinin kaydedilmemis isaretlerini siliyordu.
+  if (accelDirty) return;
+  try {
+    const cfg = await api('/api/config');
+    const a = cfg.accel || {};
+    accelApplySliders(a);
+    accelRenderCats(a);
+    const badge = $('#accel-hw-badge');
+    if (badge) {
+      if (a.ready === false) {
+        badge.textContent = 'Sensor not found ✗';
+        badge.style.cssText += ';background:rgba(239,68,68,.12);border-color:rgba(239,68,68,.35);color:#fca5a5';
+      } else {
+        badge.textContent = 'Active ✓';
+        badge.style.cssText += ';background:rgba(16,185,129,.12);border-color:rgba(16,185,129,.35);color:#86efac';
+      }
+    }
+    accelDirty = false;
+  } catch(e) { console.error('accelLoad', e); }
+}
+
+function accelApplySliders(a) {
+  const sv = (id,v) => { const e=document.getElementById(id); if(e) e.value=v; };
+  const st = (id,t) => { const e=document.getElementById(id); if(e) e.textContent=t; };
+  sv('asl-soft',  a.softShakeThreshold    ?? 0.5); st('asl-soft-v',  (a.softShakeThreshold    ?? 0.5).toFixed(2)+'g');
+  sv('asl-hard',  a.hardShakeThreshold    ?? 1.5); st('asl-hard-v',  (a.hardShakeThreshold    ?? 1.5).toFixed(1)+'g');
+  sv('asl-accel', a.accelerationThreshold ?? 0.8); st('asl-accel-v', (a.accelerationThreshold ?? 0.8).toFixed(2)+'g');
+  sv('asl-fall',  a.freefallDuration      ?? 200); st('asl-fall-v',  (a.freefallDuration      ?? 200)+'ms');
+  const pu = Math.round((a.pickupInactivityMs ?? 30000) / 1000);
+  sv('asl-pickup', pu); st('asl-pickup-v', pu+'s');
+}
+
+function accelRenderCats(a) {
+  // Kategoriler artik Animasyon sekmesindeki sabit kartlarda; JS sadece
+  // checkbox gridlerini doldurur (poke/petting gridleriyle ayni kalip).
+  const faces = (typeof state !== 'undefined' && state.faces) ? state.faces : [];
+  ACCEL_CATS.forEach(cat => {
+    const grid = document.getElementById(cat.grid);
+    if (!grid) return;
+    const sel = new Set(a[cat.key] || []);
+    grid.innerHTML = faces.length
+      ? faces.map(f => `<div class="check-item${sel.has(f.name)?' checked':''}" data-name="${esc(f.name)}" onclick="accelToggleChip(this)"><span class="check-icon"></span>${esc(f.name)}</div>`).join('')
+      : '<span style="font-size:12px;color:var(--text-dim)">No animations uploaded yet</span>';
+  });
+}
+
+function accelToggleChip(el) {
+  el.classList.toggle('checked');
+  accelMarkDirty();
+}
+
+function accelMarkDirty() {
+  accelDirty = true;
+  if (typeof state !== 'undefined') state.animEventsDirty = true;
+  if (typeof updateAnimEventsSaveStatus === 'function') updateAnimEventsSaveStatus();
+}
+
+function accelBuildPayload(base) {
+  const a = Object.assign({}, base);
+  a.softShakeThreshold    = parseFloat(document.getElementById('asl-soft').value);
+  a.hardShakeThreshold    = parseFloat(document.getElementById('asl-hard').value);
+  a.accelerationThreshold = parseFloat(document.getElementById('asl-accel').value);
+  a.freefallDuration      = parseInt(document.getElementById('asl-fall').value);
+  a.pickupInactivityMs    = parseInt(document.getElementById('asl-pickup').value) * 1000;
+  ACCEL_CATS.forEach(cat => {
+    const grid = document.getElementById(cat.grid);
+    if (!grid) return;
+    a[cat.key] = Array.from(grid.querySelectorAll('.check-item.checked')).map(e => e.dataset.name);
+  });
+  return a;
+}
+
+async function accelTest(type, catKey) {
+  // O an gridde ISARETLI olanlardan rastgele birini dogrudan oynat —
+  // kaydetmek sart degil. Hic isaretli yoksa cihazdaki kayitli listeden dener.
+  let url = '/api/test-accel?type=' + type;
+  const cat = ACCEL_CATS.find(c => c.key === catKey);
+  const grid = cat ? document.getElementById(cat.grid) : null;
+  let picked = '';
+  if (grid) {
+    const checked = Array.from(grid.querySelectorAll('.check-item.checked')).map(e => e.dataset.name).filter(Boolean);
+    if (checked.length) picked = checked[Math.floor(Math.random() * checked.length)];
+  }
+  // Grid daha render olmadiysa veya kaydedilmis liste state'te varsa oradan dene.
+  if (!picked && state && state.config && state.config.accel && Array.isArray(state.config.accel[catKey]) && state.config.accel[catKey].length) {
+    const saved = state.config.accel[catKey].filter(Boolean);
+    if (saved.length) picked = saved[Math.floor(Math.random() * saved.length)];
+  }
+  if (picked) url += '&name=' + encodeURIComponent(picked);
+  try {
+    const r = await fetch(url, {method:'POST'});
+    if (r.ok) toast('Playing test ▶' + (picked ? ' ' + picked : ''), 'success');
+    else {
+      const msg = await r.text().catch(() => '');
+      toast(msg || 'Pick an animation to test (list is empty)', 'error');
+    }
+  } catch(e) { toast('Connection error', 'error'); }
+}
+
+function accelLiveToggle() {
+  accelLiveOn = !accelLiveOn;
+  const panel = document.getElementById('accel-live-panel');
+  const lbl   = document.getElementById('accel-live-lbl');
+  if (accelLiveOn) {
+    if (panel) panel.style.display = 'block';
+    if (lbl) lbl.textContent = 'Updating…';
+    accelLiveTick();
+    accelLiveTmr = setInterval(accelLiveTick, 500);  // 2Hz: cihaz loop'unu daha az keser
+  } else {
+    if (panel) panel.style.display = 'none';
+    if (lbl) lbl.textContent = '';
+    clearInterval(accelLiveTmr);
+  }
+}
+
+async function accelLiveTick() {
+  try {
+    const d = await api('/api/accel/live');
+    if (!d.ready) { const e=document.getElementById('lv-x'); if(e) e.textContent='No sensor'; return; }
+    const s = (id,v) => { const e=document.getElementById(id); if(e) e.textContent=v; };
+    s('lv-x', d.x.toFixed(3)+'g');
+    s('lv-y', d.y.toFixed(3)+'g');
+    s('lv-z', d.z.toFixed(3)+'g');
+    s('lv-m', d.magnitude.toFixed(3)+'g');
+    // d.orientation ham PL_STATUS register'i: LAPO bit2:1 = yon, LO bit6 = duz/kilitli
+    const lapo = (d.orientation >> 1) & 3;
+    const lockout = d.orientation & 0x40;
+    s('lv-o', lockout ? 'Flat' : (ACCEL_PL[lapo] || lapo));
+    s('lv-f', d.inFreefall ? '⬇️ FALLING' : 'no');
+    const cd = d.cooldownRemaining || {};
+    const fmt = v => v > 0 ? Math.ceil(v/1000)+'s' : '✓';
+    s('lv-cd-s',  fmt(cd.softShake    || 0));
+    s('lv-cd-h',  fmt(cd.hardShake    || 0));
+    s('lv-cd-a',  fmt(cd.acceleration || 0));
+    s('lv-cd-f2', fmt(cd.freefall     || 0));
+    s('lv-cd-o',  fmt(cd.orientation  || 0));
+    s('lv-cd-p',  fmt(cd.pickup       || 0));
+  } catch(e) { /* geçici kopma */ }
+}
+
+// Sistem sekmesi açıldığında yükle
+const _origRefreshSystem = typeof window.refreshSystem === 'function' ? window.refreshSystem : null;
+window.refreshSystem = async function() {
+  if (_origRefreshSystem) await _origRefreshSystem();
+  await accelLoad();
+};
+
+// İlk yükleme: faces gerçekten yüklenene kadar bekle (state.faces boş [] ile
+// başladığı ve truthy olduğu için önceki kontrol hemen geçiyordu; kategoriler
+// "animasyon yok" görünüyordu). 5sn sonra yine de yükle (cihazda hiç yüz olmayabilir).
+(function waitAndLoad(tries) {
+  tries = tries || 0;
+  const ready = typeof state !== 'undefined' && state.faces && state.faces.length > 0;
+  if (ready || tries > 50) { accelLoad(); }
+  else { setTimeout(() => waitAndLoad(tries + 1), 100); }
+})(0);
+</script>
+</body>
+</html>

@@ -11,7 +11,7 @@ A small desk companion that shows animated faces on a 128x64 OLED, running on an
 - Accelerometer reactions: soft and hard shake, acceleration, free-fall, tilt, pick-up
 - Random idle and event animations that avoid recent repeats
 - Web panel in English or Turkish: face gallery, upload/delete, reaction assignments, settings, config import/export
-- WiFi access point opened with a tap combo, closes itself after a timeout
+- WiFi access point opened with a tap combo, closes itself after a timeout; password changeable from the web panel
 - Battery level, low-battery warnings and charging indicator
 - Light, deep and hybrid sleep, woken by touch or a hard shake
 - Own animation format (MOC3: delta + RLE compression) and a GIF converter
@@ -54,12 +54,21 @@ A small desk companion that shows animated faces on a 128x64 OLED, running on an
 
 ## Quick start: prebuilt firmware
 
-Download `mochi-en.bin` (English) or `mochi-tr.bin` (Turkish) from [Releases](../../releases) and flash it at offset `0x0`:
+Pick a file from [Releases](../../releases):
+
+| File | Web panel | Faces |
+|---|---|---|
+| `mochi-en.bin` | English | none, you upload them from the web panel |
+| `mochi-tr.bin` | Turkish | none, you upload them from the web panel |
+| `mochi-en-full.bin` | English | all 53 faces and the sample settings preinstalled |
+| `mochi-tr-full.bin` | Turkish | all 53 faces and the sample settings preinstalled |
+
+Flash it at offset `0x0`:
 
 - **Browser:** open [ESP Web Flasher](https://espressif.github.io/esptool-js/), click Connect, set the address to `0x0`, pick the file, click Program.
 - **Command line:** `esptool --chip esp32c3 write_flash 0x0 mochi-en.bin`
 
-This is a full flash image, so it also clears any faces already on the device. The prebuilt firmware uses the WiFi password `example1` and the default battery calibration; build from source to change them. Then continue with [First start](#first-start).
+Every file is a full flash image, so it replaces the faces and settings already on the device. With a `-full` file Mochi is ready right away; faces can still be added or removed later from the web panel. The prebuilt firmware uses the default battery calibration; build from source to calibrate it. Then continue with [First start](#first-start).
 
 ## Build from source
 
@@ -90,7 +99,7 @@ Each language is a complete, separate sketch. Open only the one you want:
 
 At the top of the `.ino` file:
 
-- **`AP_PASSWORD`**: WiFi password, default `example1`. Use at least 8 characters, or the access point won't start.
+- **`AP_PASSWORD`**: default WiFi password, `example1`. Use at least 8 characters, or the access point won't start. It can also be changed later in the web panel.
 - **Battery calibration**: resistor tolerances and ADCs differ between boards, so calibrate your own. Measure the battery with a multimeter, compare it with the voltage in the web panel (System tab), and adjust:
   - `BATTERY_DIVIDER_RATIO`: the divider ratio, 2.0 in theory for two equal resistors
   - `BATTERY_CALIBRATION`: a fine correction multiplier
@@ -103,15 +112,22 @@ Select the port and click Upload.
 
 ## First start
 
-On the very first boot the face storage (LittleFS) is empty, so the firmware formats it and shows an animated "Hello there!". There are no faces yet.
+Without preinstalled faces, the very first boot finds the face storage (LittleFS) empty, formats it and shows an animated "Hello there!".
 
 1. **Turn on WiFi:** tap Mochi 10 times within 7 seconds. The screen shows the network name and address.
-2. **Connect:** join the `R2D2` network from your phone (password: `AP_PASSWORD`) and open `http://192.168.4.1`.
-3. **Upload faces:** in the **Faces** tab, tap **Upload Faces** and select every file in `Faces/bins/`.
-4. **Pick a default face:** tap **Default/Active** on the face that should play most of the time.
-5. **Assign reactions** in the **Animation** tab and save.
+2. **Connect:** join the `R2D2` network from your phone (password `example1`, or your `AP_PASSWORD`) and open `http://192.168.4.1`.
+3. **Change the WiFi password** in the **WiFi** tab (see below).
+4. **Upload faces:** in the **Faces** tab, tap **Upload Faces** and select every file in `Faces/bins/`. Skip this with a `-full` image.
+5. **Pick a default face:** tap **Default/Active** on the face that should play most of the time.
+6. **Assign reactions** in the **Animation** tab and save. A `-full` image already has a set of reactions assigned.
 
-WiFi turns off by itself after 15 minutes without activity, or when you repeat the 10-tap gesture.
+WiFi turns off by itself after 15 minutes without a connected device or web panel activity, or when you repeat the 10-tap gesture.
+
+### WiFi password
+
+Everyone who uses the prebuilt firmware starts with the same password, so change it: **WiFi** tab → **WiFi Password**, type the new password twice (8-63 characters, ASCII only), **Save Password**. It takes effect the next time WiFi turns on, so the current connection isn't cut. **Reset to Default** goes back to `AP_PASSWORD`.
+
+Forgot it? Connect Mochi to a computer over USB, open a serial monitor at 115200 baud (Arduino IDE → Tools → Serial Monitor) and turn WiFi on with the tap gesture. The line `[WIFI] ap_start ssid=R2D2 pass=...` shows the password.
 
 ## Web panel
 
@@ -119,7 +135,7 @@ WiFi turns off by itself after 15 minutes without activity, or when you repeat t
 |---|---|
 | **Faces** | gallery with live previews, default face, categories, usage filter, upload, delete |
 | **Animation** | idle animations, poke / petting / deep petting reactions, opening and random events, sleep and wake animations, accelerometer reactions, touch calibration, playback speed. Every list has a **Test** button that works without saving. |
-| **WiFi** | access point status and timeout, the tap combo that opens WiFi, home network credentials |
+| **WiFi** | access point status and timeout, WiFi password, the tap combo that opens WiFi, home network credentials |
 | **System** | battery and storage, OLED brightness, sleep mode, accelerometer sensitivity and live readings, battery tap combo, config download/upload, sleep test, restart |
 
 ## Gestures
@@ -149,6 +165,16 @@ python gif_to_bin.py --preview -t 120 *.gif
 
 Output is 128x64 MOC3 by default. `python gif_to_bin.py --help` lists all options (threshold, invert, fit mode, speed, combining still images). The web panel's **Download Python Script** button serves the same converter if it's on the device.
 
+## Changing the web panel
+
+The panel's source is `web/index_en.html` and `web/index_tr.html`. The firmware embeds it gzip-compressed in each sketch's `Mochi_html.h`, so after editing the HTML run:
+
+```sh
+python tools/build_web.py
+```
+
+Keep both languages in step: the tests fail if the two panels, or the two sketches, differ in anything other than translated text.
+
 ## Documentation
 
 - [Technical overview](docs/technical.md): animation format, compression, event handling, touch, accelerometer, sleep, battery, web API
@@ -156,24 +182,26 @@ Output is 128x64 MOC3 by default. `python gif_to_bin.py --help` lists all option
 
 ## Tests
 
-CI builds both firmwares (and checks they fit the partition), tests the converter and every bundled face, and runs both web panels in a headless browser against a mock device. To run the tests locally:
+CI builds both firmwares (and checks they fit the partition), builds and verifies the optional full images, tests the converter and every bundled face, checks that the English and Turkish builds stay in sync, and runs both web panels in a headless browser against a mock device. To run the tests locally:
 
 ```sh
-pip install pillow pytest playwright
+pip install pillow pytest playwright littlefs-python
 playwright install chromium
 pytest tests
 ```
 
-Pushing a `v*` tag builds both firmwares and publishes them as a GitHub release.
+Pushing a `v*` tag builds all four firmware files and publishes them as a GitHub release.
 
 ## Project layout
 
 ```
 Mochi_EN/           English firmware (sketch, web panel, partition table)
 Mochi_TR/           Turkish firmware (sketch, web panel, partition table)
+web/                web panel source (HTML), compiled into the sketches
 Faces/              face GIFs, ready-to-upload .bin files, converter
+tools/              web panel build, full image build and check
 docs/               wiring diagram, technical overview, test checklist
-tests/              converter and web panel tests
+tests/              converter, web panel, sync and tool tests
 mochi_config.json   sample config (can be uploaded from the web panel)
 ```
 

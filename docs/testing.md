@@ -6,14 +6,16 @@ Every push and pull request runs [`.github/workflows/ci.yml`](../.github/workflo
 
 | Job | What it checks |
 |---|---|
-| Firmware build (EN, TR) | Both sketches compile for ESP32-C3 and fit the 1.5MB app partition. |
+| Firmware build (EN, TR) | Both sketches compile for ESP32-C3 and fit the 1.5MB app partition. The optional full image is built with the esp32 core's `mklittlefs`, mounted with the firmware's LittleFS limits, and checked to contain every face and the config. |
 | Converter | `gif_to_bin.py` unit tests, a GIF → MOC2/MOC3 round trip, and decoding of every file in `Faces/bins/`. |
-| Web UI | The English and Turkish UIs run in headless Chromium against a mock device: settings load into the form, saving sends the right values (clamped to valid ranges), reaction lists save only with their own button, config import posts the file and reloads, and the English UI shows no Turkish text. |
+| Web UI | The English and Turkish UIs run in headless Chromium against a mock device: settings load into the form, saving sends the right values (clamped to valid ranges), reaction lists save only with their own button, config import posts the file and reloads, the WiFi password form rejects bad input and saves/resets correctly, and the English UI shows no Turkish text. |
+| Sync | The EN and TR sketches differ only inside string literals, the two web panels have the same markup and code, and the `Mochi_html.h` headers match `web/`. |
+| Tools | The full-image tools place the file system at the right offset, refuse to overwrite data, and reject incomplete or unmountable images. |
 
 Run them locally:
 
 ```sh
-pip install pillow pytest playwright
+pip install pillow pytest playwright littlefs-python
 playwright install chromium
 pytest tests
 ```
@@ -102,3 +104,24 @@ The voltage divider draws about 6 µA from the battery at all times, even in dee
 | W5 | upload a broken JSON file | error message, current settings unchanged |
 | W6 | pull the power right after saving, then power on | settings are either the old or the new values, never lost (`/config.tmp` → rename, `/config.bak` fallback) |
 | W7 | upload a non-face `.bin` (any random file) | rejected; existing faces untouched |
+
+### WiFi password
+
+| # | Action | Expected |
+|---|---|---|
+| P1 | WiFi tab, fresh device | status says the default password is in use |
+| P2 | set a new password, save | current connection stays up; status says a custom password is set |
+| P3 | turn WiFi off and on (10 taps), connect | the old password is refused, the new one works |
+| P4 | restart the device, turn WiFi on | the new password still works |
+| P5 | serial monitor at 115200, turn WiFi on | `[WIFI] ap_start ssid=R2D2 pass=<new password>` |
+| P6 | **Reset to Default**, turn WiFi off and on | `example1` (or your `AP_PASSWORD`) works again |
+| P7 | **Download Config** | the file contains no password |
+
+### Full image (`-full.bin`)
+
+| # | Action | Expected |
+|---|---|---|
+| F1 | flash `mochi-en-full.bin`, power on | opening animation, then the `blink` face; no "formatted this boot" in the System tab |
+| F2 | Faces tab | 53 faces, reactions already ticked in the Animation tab |
+| F3 | upload one more face, delete one | both work; storage usage changes |
+| F4 | flash the plain `mochi-en.bin` over it | device starts with no faces (the full flash image replaces the file system) |
