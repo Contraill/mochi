@@ -27,6 +27,7 @@ def load_ui(sketch):
 
 class MockDevice(ThreadingHTTPServer):
     daemon_threads = True
+    block_on_close = False
 
     def __init__(self, ui_gz):
         super().__init__(("127.0.0.1", 0), Handler)
@@ -108,6 +109,7 @@ def ui(request, browser):
     yield page, dev, errors, request.param
     page.close()
     dev.shutdown()
+    dev.server_close()
 
 
 def open_tab(page, name):

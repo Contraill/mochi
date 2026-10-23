@@ -58,6 +58,7 @@ jobs:
   tests:
     name: Converter and web UI tests
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
 
@@ -67,11 +68,11 @@ jobs:
 
       - name: Install
         run: |
-          pip install pillow pytest playwright
+          pip install pillow pytest pytest-timeout playwright
           playwright install --with-deps chromium
 
       - name: Test
-        run: pytest tests -v
+        run: pytest tests -v --timeout 120
 
   release:
     name: Release
