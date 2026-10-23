@@ -1,0 +1,8 @@
+# Mochi ESP32-C3 SuperMini 4MB flash - large app / LittleFS balance
+# App: 1536KB (0x180000), LittleFS: 2496KB (0x270000)
+# For redesigned no-gzip UI; label is "storage" and mounted as LittleFS by the sketch.
+# Name,     Type, SubType, Offset,   Size,     Flags
+nvs,        data, nvs,     0x9000,   0x5000,
+phy_init,   data, phy,     0xf000,   0x1000,
+factory,    app,  factory, 0x10000,  0x180000,
+storage,    data, spiffs,  0x190000, 0x270000,

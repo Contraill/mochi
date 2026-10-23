@@ -1,0 +1,127 @@
+{
+  "defaultFace": "blink",
+  "currentFace": "blink",
+  "wifiSSID": "",
+  "wifiAutoConnect": false,
+  "wifiTimeoutMinutes": 15,
+  "wifiTapCount": 10,
+  "wifiTapWindowSec": 7,
+  "batteryTapCount": 5,
+  "batteryTapWindowSec": 5,
+  "longPressMs": 200,
+  "deepPettingMs": 3000,
+  "touchDebounceMs": 35,
+  "displayBrightnessPercent": 50,
+  "displayBrightnessContrast": 128,
+  "sleepEnabled": true,
+  "sleepTimeoutMinutes": 60,
+  "sleepEnterFace": "",
+  "sleepWakeFace": "",
+  "sleepMode": 0,
+  "sleepDeepAfterMinutes": 15,
+  "speedMultiplier": 1,
+  "randomEventMinSec": 15,
+  "randomEventMaxSec": 20,
+  "idleEventMinSec": 5,
+  "idleEventMaxSec": 14,
+  "idleList": [
+    {
+      "name": "right",
+      "loops": 1,
+      "seconds": 0
+    },
+    {
+      "name": "left",
+      "loops": 1,
+      "seconds": 0
+    },
+    {
+      "name": "wink",
+      "loops": 1,
+      "seconds": 0
+    },
+    {
+      "name": "squint",
+      "loops": 1,
+      "seconds": 0
+    },
+    {
+      "name": "shrink",
+      "loops": 1,
+      "seconds": 0
+    },
+    {
+      "name": "down",
+      "loops": 1,
+      "seconds": 0
+    },
+    {
+      "name": "distracted",
+      "loops": 1,
+      "seconds": 0
+    }
+  ],
+  "faceCategories": {},
+  "pokeReactions": [
+    "angry",
+    "brave",
+    "contempt",
+    "dizzy",
+    "enraged",
+    "fierce",
+    "furious",
+    "irritated",
+    "scared",
+    "smoke",
+    "splash",
+    "spraying",
+    "squint",
+    "surprised",
+    "tough",
+    "weeping"
+  ],
+  "pettingReactions": [
+    "down",
+    "giggle",
+    "happy",
+    "shy",
+    "smile",
+    "teasing"
+  ],
+  "deepPettingReactions": [
+    "adore",
+    "handsome",
+    "laughing",
+    "love",
+    "smirk",
+    "shy"
+  ],
+  "openingEvents": [
+    "glowing",
+    "hello",
+    "menacing",
+    "smile",
+    "surprised"
+  ],
+  "randomEvents": [
+    "buzzing",
+    "contempt",
+    "dancing",
+    "devil",
+    "drowsy",
+    "encouragement",
+    "energetic",
+    "evil",
+    "growing",
+    "playful",
+    "rain",
+    "serene",
+    "sleepy",
+    "sneeze",
+    "sparkle",
+    "speed",
+    "yawn"
+  ],
+  "sleepEnterEvents": [],
+  "sleepWakeEvents": []
+}
