@@ -1,0 +1,133 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 660" width="960" height="660" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <style>
+    .box { fill: #f6f8fa; stroke: #24292f; stroke-width: 2; rx: 8; }
+    .mcu { fill: #e7f0fb; stroke: #0b4f9c; stroke-width: 2.5; rx: 8; }
+    .title { font-size: 15px; font-weight: bold; fill: #24292f; }
+    .sub { font-size: 11px; fill: #57606a; }
+    .pin { fill: #24292f; }
+    .unused { fill: #8c959f; }
+    .wire { stroke: #24292f; stroke-width: 2; fill: none; }
+    .tag rect { rx: 4; }
+    .pwr rect { fill: #ffebe9; stroke: #cf222e; }
+    .pwr text { fill: #cf222e; font-weight: bold; }
+    .gnd rect { fill: #eaeef2; stroke: #424a53; }
+    .gnd text { fill: #424a53; font-weight: bold; }
+    .sig rect { fill: #ddf4ff; stroke: #0969da; }
+    .sig text { fill: #0969da; font-weight: bold; }
+    .res { fill: #fff8c5; stroke: #9a6700; stroke-width: 2; }
+  </style>
+
+  <rect width="960" height="660" fill="#ffffff"/>
+  <text x="480" y="34" text-anchor="middle" font-size="20" font-weight="bold" fill="#24292f">Mochi wiring</text>
+  <text x="480" y="54" text-anchor="middle" class="sub">Each module pin is labeled with the ESP32-C3 pin it connects to. Same label = same wire.</text>
+
+  <!-- ESP32-C3 SuperMini -->
+  <rect class="mcu" x="380" y="110" width="200" height="300"/>
+  <text x="480" y="98" text-anchor="middle" class="title">ESP32-C3 SuperMini</text>
+  <g class="wire">
+    <path d="M350 150h30M350 182h30M350 214h30M350 246h30M350 278h30M350 310h30M350 342h30M350 374h30"/>
+    <path d="M580 150h30M580 182h30M580 214h30M580 246h30M580 278h30M580 310h30M580 342h30M580 374h30"/>
+  </g>
+  <g class="pin">
+    <text x="390" y="154">5V</text><text x="390" y="186">GND</text><text x="390" y="218">3V3</text>
+    <text x="390" y="250">GPIO4</text><text x="390" y="282">GPIO3</text><text x="390" y="314">GPIO2</text>
+    <text x="390" y="346">GPIO1</text><text x="390" y="378">GPIO0</text>
+    <text x="570" y="154" text-anchor="end">GPIO5</text><text x="570" y="186" text-anchor="end">GPIO6</text>
+    <text x="570" y="218" text-anchor="end">GPIO7</text>
+    <text x="570" y="314" text-anchor="end">GPIO10</text><text x="570" y="346" text-anchor="end">GPIO20</text>
+    <text x="570" y="378" text-anchor="end">GPIO21</text>
+  </g>
+  <g class="unused">
+    <text x="570" y="250" text-anchor="end">GPIO8</text><text x="570" y="282" text-anchor="end">GPIO9</text>
+  </g>
+  <text x="480" y="398" text-anchor="middle" class="sub">USB-C</text>
+
+  <!-- SH1106 OLED -->
+  <rect class="box" x="40" y="80" width="170" height="250"/>
+  <text x="125" y="104" text-anchor="middle" class="title">SH1106 OLED</text>
+  <text x="125" y="120" text-anchor="middle" class="sub">1.3" SPI, 128x64</text>
+  <path class="wire" d="M210 142h30M210 170h30M210 198h30M210 226h30M210 254h30M210 282h30M210 310h30"/>
+  <text x="200" y="146" text-anchor="end" class="pin">VCC</text>
+  <g class="tag pwr"><rect x="240" y="133" width="52" height="18"/><text x="266" y="146" text-anchor="middle">3V3</text></g>
+  <text x="200" y="174" text-anchor="end" class="pin">GND</text>
+  <g class="tag gnd"><rect x="240" y="161" width="52" height="18"/><text x="266" y="174" text-anchor="middle">GND</text></g>
+  <text x="200" y="202" text-anchor="end" class="pin">SCK</text>
+  <g class="tag sig"><rect x="240" y="189" width="60" height="18"/><text x="270" y="202" text-anchor="middle">GPIO4</text></g>
+  <text x="200" y="230" text-anchor="end" class="pin">MOSI</text>
+  <g class="tag sig"><rect x="240" y="217" width="60" height="18"/><text x="270" y="230" text-anchor="middle">GPIO6</text></g>
+  <text x="200" y="258" text-anchor="end" class="pin">RES</text>
+  <g class="tag sig"><rect x="240" y="245" width="60" height="18"/><text x="270" y="258" text-anchor="middle">GPIO3</text></g>
+  <text x="200" y="286" text-anchor="end" class="pin">DC</text>
+  <g class="tag sig"><rect x="240" y="273" width="60" height="18"/><text x="270" y="286" text-anchor="middle">GPIO5</text></g>
+  <text x="200" y="314" text-anchor="end" class="pin">CS</text>
+  <g class="tag sig"><rect x="240" y="301" width="60" height="18"/><text x="270" y="314" text-anchor="middle">GPIO7</text></g>
+
+  <!-- TTP223 -->
+  <rect class="box" x="40" y="360" width="170" height="120"/>
+  <text x="125" y="384" text-anchor="middle" class="title">TTP223 touch</text>
+  <path class="wire" d="M210 408h30M210 436h30M210 464h30"/>
+  <g class="pin">
+    <text x="200" y="412" text-anchor="end">VCC</text><text x="200" y="440" text-anchor="end">GND</text>
+    <text x="200" y="468" text-anchor="end">OUT</text>
+  </g>
+  <g class="tag pwr"><rect x="240" y="399" width="52" height="18"/><text x="266" y="412" text-anchor="middle">3V3</text></g>
+  <g class="tag gnd"><rect x="240" y="427" width="52" height="18"/><text x="266" y="440" text-anchor="middle">GND</text></g>
+  <g class="tag sig"><rect x="240" y="455" width="60" height="18"/><text x="270" y="468" text-anchor="middle">GPIO1</text></g>
+
+  <!-- MMA8452Q -->
+  <rect class="box" x="750" y="80" width="170" height="230"/>
+  <text x="835" y="104" text-anchor="middle" class="title">MMA8452Q</text>
+  <text x="835" y="120" text-anchor="middle" class="sub">accelerometer, I2C 0x1C</text>
+  <path class="wire" d="M720 142h30M720 174h30M720 206h30M720 238h30M720 270h30M720 302h30"/>
+  <g class="pin">
+    <text x="760" y="146">VCC</text><text x="760" y="178">GND</text><text x="760" y="210">SDA</text>
+    <text x="760" y="242">SCL</text><text x="760" y="274">INT1</text><text x="760" y="306">INT2</text>
+  </g>
+  <g class="tag pwr"><rect x="668" y="133" width="52" height="18"/><text x="694" y="146" text-anchor="middle">3V3</text></g>
+  <g class="tag gnd"><rect x="668" y="165" width="52" height="18"/><text x="694" y="178" text-anchor="middle">GND</text></g>
+  <g class="tag sig"><rect x="652" y="197" width="68" height="18"/><text x="686" y="210" text-anchor="middle">GPIO20</text></g>
+  <g class="tag sig"><rect x="652" y="229" width="68" height="18"/><text x="686" y="242" text-anchor="middle">GPIO21</text></g>
+  <g class="tag sig"><rect x="660" y="261" width="60" height="18"/><text x="690" y="274" text-anchor="middle">GPIO2</text></g>
+  <g class="tag sig"><rect x="652" y="293" width="68" height="18"/><text x="686" y="306" text-anchor="middle">GPIO10</text></g>
+  <text x="835" y="332" text-anchor="middle" class="sub">power from 3V3, not 5V</text>
+
+  <!-- Power: LiPo + TP4056 + battery divider -->
+  <text x="40" y="520" class="title">Power and battery measurement</text>
+
+  <rect class="box" x="40" y="545" width="110" height="80"/>
+  <text x="95" y="575" text-anchor="middle" class="title">LiPo</text>
+  <text x="95" y="595" text-anchor="middle" class="sub">1 cell, 3.7 V</text>
+  <text x="140" y="568" text-anchor="end" class="pin">+</text>
+  <text x="140" y="613" text-anchor="end" class="pin">−</text>
+
+  <rect class="box" x="230" y="545" width="150" height="80"/>
+  <text x="305" y="575" text-anchor="middle" class="title">TP4056</text>
+  <text x="305" y="593" text-anchor="middle" class="sub">charger board</text>
+  <g class="pin">
+    <text x="238" y="568">B+</text><text x="238" y="613">B−</text>
+    <text x="372" y="568" text-anchor="end">OUT+</text><text x="372" y="613" text-anchor="end">OUT−</text>
+  </g>
+  <path class="wire" d="M150 564H230M150 609H230"/>
+
+  <!-- OUT+ to 5V, OUT- to GND -->
+  <path class="wire" d="M380 564H440M380 609H440"/>
+  <circle cx="440" cy="564" r="4" fill="#24292f"/>
+  <path class="wire" d="M440 564V536H468"/>
+  <g class="tag pwr"><rect x="468" y="527" width="40" height="18"/><text x="488" y="540" text-anchor="middle">5V</text></g>
+  <g class="tag gnd"><rect x="440" y="600" width="52" height="18"/><text x="466" y="613" text-anchor="middle">GND</text></g>
+
+  <!-- Divider: OUT+ -> 330k -> GPIO0 -> 330k -> GND -->
+  <path class="wire" d="M440 564H560"/>
+  <rect class="res" x="560" y="553" width="70" height="22" rx="3"/>
+  <text x="595" y="569" text-anchor="middle" font-weight="bold" fill="#7d4e00">330k</text>
+  <path class="wire" d="M630 564H700"/>
+  <circle cx="700" cy="564" r="4" fill="#24292f"/>
+  <path class="wire" d="M700 564V536H716"/>
+  <g class="tag sig"><rect x="716" y="527" width="60" height="18"/><text x="746" y="540" text-anchor="middle">GPIO0</text></g>
+  <path class="wire" d="M700 564H740"/>
+  <rect class="res" x="740" y="553" width="70" height="22" rx="3"/>
+  <text x="775" y="569" text-anchor="middle" font-weight="bold" fill="#7d4e00">330k</text>
+  <path class="wire" d="M810 564H850"/>
+  <g class="tag gnd"><rect x="850" y="555" width="52" height="18"/><text x="876" y="568" text-anchor="middle">GND</text></g>
+  <text x="685" y="600" text-anchor="middle" class="sub">Battery voltage divider (calibrate in firmware)</text>
+</svg>
