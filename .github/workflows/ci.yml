@@ -63,7 +63,7 @@ jobs:
           cp mochi_config.json fsdata/config.json
           "$MKLITTLEFS" -c fsdata -b 4096 -p 256 -s 0x270000 build/storage.bin
           pip install littlefs-python
-          python tools/check_fs_image.py build/storage.bin
+          python tools/check_fs_image.py ${{ matrix.sketch }}/partitions.csv build/storage.bin
           python tools/full_image.py ${{ matrix.sketch }}/partitions.csv \
             build/${{ matrix.sketch }}.ino.merged.bin build/storage.bin build/${{ matrix.sketch }}-full.bin
 
